@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 # coding:utf-8
-# Copyright (c) 2023 ZouMingzhe <zoumingzhe@qq.com>
 
 from xarg import __version__ as version
 from xarg import xarg
