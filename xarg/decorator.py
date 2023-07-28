@@ -4,8 +4,8 @@
 from errno import EINTR
 from errno import ENOENT
 import sys
-from typing import List
 from typing import Optional
+from typing import Sequence
 from typing import Tuple
 
 from .parser import argp
@@ -74,7 +74,7 @@ class commands:
 
         return 0
 
-    def run(self, argv: Optional[List[str]] = None, **kwargs) -> int:
+    def run(self, argv: Optional[Sequence[str]] = None, **kwargs) -> int:
         _arg = argp(**kwargs)
         self.__add_parser(_arg, self.root)
         args = _arg.parse_args(argv)
