@@ -7,8 +7,10 @@ from errno import ENOENT
 import sys
 from typing import Optional
 from typing import Sequence
+from typing import TextIO
 from typing import Tuple
 
+from .logger import level
 from .parser import argp
 
 
@@ -29,6 +31,24 @@ class commands:
     def __init__(self, *args, **kwargs):
         self.root: Optional[add_command] = None
         self.args: Optional[Namespace] = None
+
+    @property
+    def debug(self) -> int:
+        if not isinstance(self.args, Namespace):
+            return level.WARN
+
+        if hasattr(self.args, "debug") and isinstance(self.args.debug, int):
+            return self.args.debug
+
+        return level.INFO
+
+    def log(self, context: str, level: int = level.DEBUG):
+        if level > self.debug:
+            return
+
+        std: TextIO = sys.stderr
+        std.write(f"{context}\n")
+        std.flush()
 
     def __add_parser(self, argp: argp, root):
         if not isinstance(root, add_command):
@@ -52,7 +72,9 @@ class commands:
               **kwargs) -> Namespace:
         _arg = argp(**kwargs)
         self.__add_parser(_arg, self.root)
-        self.args = _arg.parse_args(argv)
+        args = _arg.parse_args(argv)
+
+        self.args = args
         return self.args
 
     def __run(self, args, root) -> int:
@@ -86,20 +108,16 @@ class commands:
 
     def run(self, argv: Optional[Sequence[str]] = None, **kwargs) -> int:
         args = self.parse(argv, **kwargs)
-
-        if hasattr(args, "debug") and args.debug:
-            sys.stderr.write(f"{args}\n")
-            sys.stderr.flush()
+        self.log(f"{args}", level.DEBUG)
 
         try:
             return self.__run(args, self.root)
         except KeyboardInterrupt:
             return EINTR
         except BaseException as e:
-            if hasattr(args, "debug") and args.debug:
+            self.log(f"{e}", level.FATAL)
+            if self.debug >= level.DEBUG:
                 raise e
-            sys.stderr.write(f"{e}\n")
-            sys.stderr.flush()
             return 10000
 
 
