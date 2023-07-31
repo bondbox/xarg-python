@@ -37,8 +37,10 @@ class commands:
         if not isinstance(self.args, Namespace):
             return level.WARN
 
-        if hasattr(self.args, "debug") and isinstance(self.args.debug, int):
-            return self.args.debug
+        if hasattr(self.args, "debug") and isinstance(self.args.debug, str):
+            for name, member in level.__members__.items():
+                if self.args.debug == name.lower():
+                    return member
 
         return level.INFO
 
@@ -50,11 +52,35 @@ class commands:
         std.write(f"{context}\n")
         std.flush()
 
+    def __add_optional_debug(self, argp: argp, root):
+        if not isinstance(root, add_command):
+            return
+
+        option_strings = set()
+        for action in argp._get_optional_actions():
+            option_strings.update(action.option_strings)
+        options = {'-d', '--debug'} - option_strings
+
+        if len(options) <= 0:
+            return
+
+        def get_debug_level_name():
+            return [key.lower() for key in level.__members__.keys()]
+
+        argp.add_argument(*options,
+                          type=int,
+                          nargs="?",
+                          const=level.DEBUG.name.lower(),
+                          default=level.INFO.name.lower(),
+                          choices=get_debug_level_name(),
+                          help="specify log level, default info")
+
     def __add_parser(self, argp: argp, root):
         if not isinstance(root, add_command):
             return
 
         root.func(argp)
+        self.__add_optional_debug(argp, root)
 
         subs = root.subs
         if not (isinstance(subs, list) or isinstance(subs, tuple)):

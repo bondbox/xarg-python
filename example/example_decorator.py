@@ -59,7 +59,10 @@ def run_del(args) -> int:
 @add_command('example')
 def cmd(argp: argp):
     # print("example", argp)
-    argp.add_opt_on('-d', '--debug', help="show debug information")
+    argp.add_opt_on('--debug')
+    argp.add_opt_on('-t', '--test')
+    argp.add_opt_off('-s', '--show')
+    pass
 
 
 @run_command(cmd, cmd_get, cmd_set, cmd_del)
@@ -70,7 +73,6 @@ def run(args) -> int:
 
 def main(argv: Optional[List[str]] = None) -> int:
     return commands().run(
-        ['-d', 'set', 'value'],
         prog="xarg-example",
         description="Simple command-line tool based on argparse.")
 
