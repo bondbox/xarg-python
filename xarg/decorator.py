@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # coding:utf-8
 
+from argparse import Namespace
 from errno import EINTR
 from errno import ENOENT
 import sys
@@ -27,6 +28,7 @@ class commands:
 
     def __init__(self, *args, **kwargs):
         self.root: Optional[add_command] = None
+        self.args: Optional[Namespace] = None
 
     def __add_parser(self, argp: argp, root):
         if not isinstance(root, add_command):
@@ -44,6 +46,14 @@ class commands:
                 continue
             _arg = _sub.add_parser(sub.name, **sub.options)
             self.__add_parser(_arg, sub)
+
+    def parse(self,
+              argv: Optional[Sequence[str]] = None,
+              **kwargs) -> Namespace:
+        _arg = argp(**kwargs)
+        self.__add_parser(_arg, self.root)
+        self.args = _arg.parse_args(argv)
+        return self.args
 
     def __run(self, args, root) -> int:
         if not isinstance(root, add_command):
@@ -75,9 +85,7 @@ class commands:
         return 0
 
     def run(self, argv: Optional[Sequence[str]] = None, **kwargs) -> int:
-        _arg = argp(**kwargs)
-        self.__add_parser(_arg, self.root)
-        args = _arg.parse_args(argv)
+        args = self.parse(argv, **kwargs)
 
         if hasattr(args, "debug") and args.debug:
             sys.stderr.write(f"{args}\n")

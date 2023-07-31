@@ -5,6 +5,9 @@
 __version__ = "0.7"
 
 from .decorator import commands
+
+from .decorator import Namespace
+
 from .decorator import add_command
 from .decorator import run_command
 
