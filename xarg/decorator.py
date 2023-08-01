@@ -29,6 +29,26 @@ def singleton(cls):
 
 @singleton
 class commands:
+    '''
+    Singleton command-line tool based on argparse.
+
+    Define and bind callback functions before calling run() or parse().
+
+    For example:
+
+    @add_command('example')\n
+    def cmd(argp: argp):\n
+        argp.add_opt_on('-t', '--test')\n
+
+    @run_command(cmd, cmd_get, cmd_set)\n
+    def run(args) -> int:\n
+        return 0\n
+
+    def main(argv: Optional[List[str]] = None) -> int:\n
+        return commands().run(\n
+            prog="xarg-example",\n
+            description="Simple command-line tool based on argparse.")\n
+    '''
 
     def __init__(self, *args, **kwargs):
         self.root: Optional[add_command] = None
@@ -51,6 +71,9 @@ class commands:
 
     @property
     def debug_level(self) -> int:
+        '''
+        The logger output level. If not specified, the default is WARN.
+        '''
         if isinstance(self.args, Namespace) and\
            hasattr(self.args, "_debug_level_str_") and\
            isinstance(self.args._debug_level_str_, str):
@@ -59,6 +82,13 @@ class commands:
         return level.WARN
 
     def log(self, context, level: int = level.DEBUG):
+        '''
+        Output logs to the specified stream.
+
+        Each log should define the level or use the default. Only when
+        the log level is less than or equal to the specified level, the
+        log will be output to the specified stream.
+        '''
         if level > self.debug_level:
             return
 
@@ -140,6 +170,9 @@ class commands:
     def parse(self,
               argv: Optional[Sequence[str]] = None,
               **kwargs) -> Namespace:
+        '''
+        Parse the command line.
+        '''
         _arg = argp(**kwargs)
         self.__add_parser(_arg, self.root)
         args = _arg.parse_args(argv)
@@ -177,6 +210,9 @@ class commands:
         return 0
 
     def run(self, argv: Optional[Sequence[str]] = None, **kwargs) -> int:
+        '''
+        Parse and run the command line.
+        '''
         args = self.parse(argv, **kwargs)
         self.log(f"{args}", level.DEBUG)
 
@@ -192,6 +228,15 @@ class commands:
 
 
 class add_command:
+    '''
+    Define command-line arguments.
+
+    For example:
+
+    @add_command('example')\n
+    def cmd(argp: argp):\n
+        argp.add_opt_on('-t', '--test')\n
+    '''
 
     def __init__(self, name: str, **kwargs):
         self.cmds: commands = commands()
@@ -210,6 +255,15 @@ class add_command:
 
 
 class run_command:
+    '''
+    Bind command-line arguments and subcommands, define callback functions.
+
+    For example:
+
+    @run_command(cmd, cmd_get, cmd_set)\n
+    def run(args) -> int:\n
+        return 0\n
+    '''
 
     def __init__(self, cmd_bind: add_command, *subs):
         assert isinstance(cmd_bind, add_command)

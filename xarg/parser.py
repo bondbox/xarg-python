@@ -32,6 +32,9 @@ class argp(ArgumentParser):
                        title: Optional[str] = None,
                        description: Optional[str] = None,
                        **kwargs) -> _ArgumentGroup:
+        '''
+        Find the created argument group by title, create if not exist.
+        '''
         for group in self._action_groups:
             if title == group.title:
                 return group
@@ -39,6 +42,9 @@ class argp(ArgumentParser):
 
     @check_name_opt
     def filter_optional_name(self, *name: str) -> set:
+        '''
+        Filter defined optional argument name.
+        '''
         option_strings = set()
         for action in self._get_optional_actions():
             option_strings.update(action.option_strings)
@@ -47,7 +53,7 @@ class argp(ArgumentParser):
     @check_name_pos
     def add_pos(self, name: str, **kwargs) -> None:
         '''
-        add positional argument
+        Add positional argument.
         '''
         assert 'dest' not in kwargs,\
             "dest supplied twice for positional argument"
@@ -57,14 +63,14 @@ class argp(ArgumentParser):
     @check_nargs_opt
     def add_opt(self, *name: str, **kwargs) -> None:
         '''
-        add optional argument
+        Add optional argument.
         '''
         self.add_argument(*name, **kwargs)
 
     @check_name_opt
     def add_opt_on(self, *name: str, **kwargs) -> None:
         '''
-        add boolean optional argument, default value is False
+        Add boolean optional argument, default value is False.
         '''
         kwargs.update({"action": 'store_true'})
         for key in ("type", "nargs", "const", "default", "choices"):
@@ -74,7 +80,7 @@ class argp(ArgumentParser):
     @check_name_opt
     def add_opt_off(self, *name: str, **kwargs) -> None:
         '''
-        add boolean optional argument, default value is True
+        Add boolean optional argument, default value is True.
         '''
         kwargs.update({"action": 'store_false'})
         for key in ("type", "nargs", "const", "default", "choices"):
@@ -83,7 +89,7 @@ class argp(ArgumentParser):
 
     def add_subparsers(self, *args, **kwargs) -> _SubParsersAction:
         '''
-        enable subparsers
+        Add subparsers.
         '''
         # subparser: cannot have multiple subparser arguments
         kwargs.setdefault("dest", f"subcmd_{self.prog}")
