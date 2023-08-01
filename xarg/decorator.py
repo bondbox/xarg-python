@@ -2,6 +2,7 @@
 # coding:utf-8
 
 from argparse import Namespace
+from argparse import FileType
 from errno import EINTR
 from errno import ENOENT
 import sys
@@ -46,6 +47,9 @@ class commands:
             return
 
         std: TextIO = sys.stderr
+        if isinstance(self.args, Namespace) and\
+           hasattr(self.args, "_log_output_stream_"):
+            std = self.args._log_output_stream_
         std.write(f"{context}\n")
         std.flush()
 
@@ -69,12 +73,29 @@ class commands:
                           dest="_debug_level_str_",
                           help="specify log level, default info")
 
+    def __add_optional_output(self, argp: argp, root):
+        if not isinstance(root, add_command):
+            return
+
+        options = argp.filter_optional_name('-o', '--output')
+        if len(options) <= 0:
+            return
+
+        argp.add_argument(*options,
+                          type=FileType('w', encoding='UTF-8'),
+                          nargs="?",
+                          const=sys.stdout,
+                          default=sys.stderr,
+                          dest="_log_output_stream_",
+                          help="specify log output stream")
+
     def __add_parser(self, argp: argp, root):
         if not isinstance(root, add_command):
             return
 
         root.func(argp)
         self.__add_optional_debug(argp, root)
+        self.__add_optional_output(argp, root)
 
         subs = root.subs
         if not (isinstance(subs, list) or isinstance(subs, tuple)):
