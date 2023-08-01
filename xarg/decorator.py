@@ -64,14 +64,18 @@ class commands:
         def get_debug_level_name():
             return [key.lower() for key in level.__members__.keys()]
 
-        argp.add_argument(*options,
-                          type=str,
-                          nargs="?",
-                          const=level.DEBUG.name.lower(),
-                          default=level.INFO.name.lower(),
-                          choices=get_debug_level_name(),
-                          dest="_debug_level_str_",
-                          help="specify log level, default info")
+        group = argp.argument_group("logger optional arguments")
+        group.add_argument(*options,
+                           type=str,
+                           nargs="?",
+                           const=level.DEBUG.name.lower(),
+                           default=level.INFO.name.lower(),
+                           choices=get_debug_level_name(),
+                           dest="_debug_level_str_",
+                           help="Specify log level, default\n"
+                           f"{level.INFO.name.lower()}.\n"
+                           "If this option has no value, it means\n"
+                           f"{level.DEBUG.name.lower()}.\n")
 
     def __add_optional_output(self, argp: argp, root):
         if not isinstance(root, add_command):
@@ -81,13 +85,17 @@ class commands:
         if len(options) <= 0:
             return
 
-        argp.add_argument(*options,
-                          type=FileType('w', encoding='UTF-8'),
-                          nargs="?",
-                          const=sys.stdout,
-                          default=sys.stderr,
-                          dest="_log_output_stream_",
-                          help="specify log output stream")
+        group = argp.argument_group("logger optional arguments")
+        group.add_argument(*options,
+                           type=FileType('a', encoding='UTF-8'),
+                           nargs="?",
+                           const=sys.stdout,
+                           default=sys.stderr,
+                           metavar='log output file',
+                           dest="_log_output_stream_",
+                           help="Specify log output stream, default stderr.\n"
+                           "If a file path is specified, output the log to\n"
+                           "the specified file, otherwise redirect to stdout.")
 
     def __add_parser(self, argp: argp, root):
         if not isinstance(root, add_command):

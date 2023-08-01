@@ -2,6 +2,7 @@
 # coding:utf-8
 
 from argparse import ArgumentParser
+from argparse import _ArgumentGroup
 from argparse import _SubParsersAction
 from typing import Optional
 
@@ -26,6 +27,15 @@ class argp(ArgumentParser):
         kwargs.setdefault("description", description)
         kwargs.setdefault("epilog", epilog)
         ArgumentParser.__init__(self, **kwargs)
+
+    def argument_group(self,
+                       title: Optional[str] = None,
+                       description: Optional[str] = None,
+                       **kwargs) -> _ArgumentGroup:
+        for group in self._action_groups:
+            if title == group.title:
+                return group
+        return self.add_argument_group(title, description, **kwargs)
 
     @check_name_opt
     def filter_optional_name(self, *name: str) -> set:
