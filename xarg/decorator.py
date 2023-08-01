@@ -33,19 +33,16 @@ class commands:
         self.args: Optional[Namespace] = None
 
     @property
-    def debug(self) -> int:
-        if not isinstance(self.args, Namespace):
-            return level.WARN
+    def debug_level(self) -> int:
+        if isinstance(self.args, Namespace) and\
+           hasattr(self.args, "_debug_level_str_") and\
+           isinstance(self.args._debug_level_str_, str):
+            return level.__members__[self.args._debug_level_str_.upper()]
 
-        if hasattr(self.args, "debug") and isinstance(self.args.debug, str):
-            for name, member in level.__members__.items():
-                if self.args.debug == name.lower():
-                    return member
-
-        return level.INFO
+        return level.WARN
 
     def log(self, context: str, level: int = level.DEBUG):
-        if level > self.debug:
+        if level > self.debug_level:
             return
 
         std: TextIO = sys.stderr
@@ -64,11 +61,12 @@ class commands:
             return [key.lower() for key in level.__members__.keys()]
 
         argp.add_argument(*options,
-                          type=int,
+                          type=str,
                           nargs="?",
                           const=level.DEBUG.name.lower(),
                           default=level.INFO.name.lower(),
                           choices=get_debug_level_name(),
+                          dest="_debug_level_str_",
                           help="specify log level, default info")
 
     def __add_parser(self, argp: argp, root):
@@ -138,7 +136,7 @@ class commands:
             return EINTR
         except BaseException as e:
             self.log(f"{e}", level.FATAL)
-            if self.debug >= level.DEBUG:
+            if self.debug_level >= level.DEBUG:
                 raise e
             return 10000
 
