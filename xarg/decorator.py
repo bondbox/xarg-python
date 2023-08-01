@@ -3,6 +3,7 @@
 
 from argparse import Namespace
 from argparse import FileType
+from datetime import datetime
 from errno import EINTR
 from errno import ENOENT
 import sys
@@ -32,6 +33,21 @@ class commands:
     def __init__(self, *args, **kwargs):
         self.root: Optional[add_command] = None
         self.args: Optional[Namespace] = None
+        self.__timefmt: Optional[str] = "%Y-%m-%d %a %H:%M:%S.%f"
+
+    @property
+    def timefmt(self) -> Optional[str]:
+        '''
+        The timestamp format for the logger.
+
+        Suggestion: only set before running! If the log format is changed
+        while calling run(), the output will be messy.
+        '''
+        return self.__timefmt
+
+    @timefmt.setter
+    def timefmt(self, value: Optional[str]):
+        self.__timefmt = value
 
     @property
     def debug_level(self) -> int:
@@ -42,7 +58,7 @@ class commands:
 
         return level.WARN
 
-    def log(self, context: str, level: int = level.DEBUG):
+    def log(self, context, level: int = level.DEBUG):
         if level > self.debug_level:
             return
 
@@ -50,7 +66,12 @@ class commands:
         if isinstance(self.args, Namespace) and\
            hasattr(self.args, "_log_output_stream_"):
             std = self.args._log_output_stream_
-        std.write(f"{context}\n")
+
+        items = []
+        if isinstance(self.timefmt, str):
+            items.append(datetime.now().strftime(self.timefmt))
+        items.append(f'{context}\n')
+        std.write(" ".join(items))
         std.flush()
 
     def __add_optional_debug(self, argp: argp, root):
