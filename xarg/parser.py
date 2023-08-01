@@ -27,6 +27,13 @@ class argp(ArgumentParser):
         kwargs.setdefault("epilog", epilog)
         ArgumentParser.__init__(self, **kwargs)
 
+    @check_name_opt
+    def filter_optional_name(self, *name: str) -> set:
+        option_strings = set()
+        for action in self._get_optional_actions():
+            option_strings.update(action.option_strings)
+        return set(name) - option_strings
+
     @check_name_pos
     def add_pos(self, name: str, **kwargs) -> None:
         '''

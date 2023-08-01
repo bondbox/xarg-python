@@ -56,11 +56,7 @@ class commands:
         if not isinstance(root, add_command):
             return
 
-        option_strings = set()
-        for action in argp._get_optional_actions():
-            option_strings.update(action.option_strings)
-        options = {'-d', '--debug'} - option_strings
-
+        options = argp.filter_optional_name('-d', '--debug')
         if len(options) <= 0:
             return
 
