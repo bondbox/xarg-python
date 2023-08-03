@@ -55,6 +55,7 @@ class commands:
 
     def main(argv: Optional[Sequence[str]] = None) -> int:\n
         return commands().run(\n
+            argv,\n
             prog="xarg-example",\n
             description="Simple command-line tool based on argparse.")\n
     '''
@@ -196,7 +197,7 @@ class commands:
                            nargs="?",
                            const=sys.stdout,
                            default=sys.stderr,
-                           metavar='log output file',
+                           metavar='log file',
                            dest="_log_output_stream_",
                            help="Specify log output stream, default stderr.\n"
                            "If a file path is specified, output the log to\n"
