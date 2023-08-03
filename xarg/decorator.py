@@ -211,7 +211,7 @@ class commands:
         self.__add_optional_output(argp, root)
 
         subs = root.subs
-        if not (isinstance(subs, list) or isinstance(subs, tuple)):
+        if not isinstance(subs, tuple) or len(subs) <= 0:
             return
 
         _sub = argp.add_subparsers(dest=root.sub_dest)

@@ -94,5 +94,5 @@ class argp(ArgumentParser):
         # subparser: cannot have multiple subparser arguments
         kwargs.setdefault("dest", f"subcmd_{self.prog}")
         kwargs.setdefault('parser_class', type(self))
-        kwargs.setdefault("help", "sub-command list")
+        kwargs.setdefault("help", "subcommand list")
         return ArgumentParser.add_subparsers(self, *args, **kwargs)
