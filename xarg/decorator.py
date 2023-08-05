@@ -209,6 +209,9 @@ class commands:
         std.flush()
 
     def __add_optional_version(self, argp: argp, root: add_command):
+        if not isinstance(self.version, str):
+            return
+
         if not isinstance(root, add_command):
             return
 
