@@ -61,7 +61,7 @@ class run_command:
         return 0\n
     '''
 
-    def __init__(self, cmd_bind: add_command, *subs):
+    def __init__(self, cmd_bind: add_command, *subs: add_command):
         assert isinstance(cmd_bind, add_command)
         for sub in subs:
             assert isinstance(sub, add_command)
