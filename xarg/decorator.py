@@ -16,6 +16,66 @@ from .logger import level
 from .parser import argp
 
 
+class add_command:
+    '''
+    Define command-line arguments.
+
+    For example:
+
+    from xarg import add_command\n
+    from xarg import argp\n
+
+    @add_command('example')\n
+    def cmd(_arg: argp):\n
+        argp.add_opt_on('-t', '--test')\n
+    '''
+
+    def __init__(self, name: str, **kwargs):
+        self.cmds: commands = commands()
+        self.name: str = name
+        self.options = kwargs
+        self.bind: Optional[run_command] = None
+        self.subs: Optional[Tuple[add_command]] = None
+
+    def __call__(self, cmd_func):
+        self.func = cmd_func
+        return self
+
+    @property
+    def sub_dest(self):
+        return f"__sub_{self.name}_dest__"
+
+
+class run_command:
+    '''
+    Bind command-line arguments and subcommands, define callback functions.
+
+    For example:
+
+    from xarg import Namespace\n
+    from xarg import argp\n
+    from xarg import run_command\n
+
+    @run_command(cmd, cmd_get, cmd_set)\n
+    def run(args: Namespace) -> int:\n
+        return 0\n
+    '''
+
+    def __init__(self, cmd_bind: add_command, *subs):
+        assert isinstance(cmd_bind, add_command)
+        for sub in subs:
+            assert isinstance(sub, add_command)
+
+        cmd_bind.bind = self
+        cmd_bind.subs = subs
+        self.bind: add_command = cmd_bind
+        commands().root = cmd_bind
+
+    def __call__(self, run_func):
+        self.func = run_func
+        return self
+
+
 def singleton(cls):
     instance = {}
 
@@ -55,7 +115,8 @@ class commands:
 
     def main(argv: Optional[Sequence[str]] = None) -> int:\n
         return commands().run(\n
-            argv,\n
+            root=cmd,\n
+            argv=argv,\n
             prog="xarg-example",\n
             description="Simple command-line tool based on argparse.")\n
     '''
@@ -81,13 +142,13 @@ class commands:
         '''
         Show version and exit.
         '''
-        if not isinstance(self.args, Namespace):
+        if not isinstance(args, Namespace):
             return
 
-        if not hasattr(self.args, "_show_version_"):
+        if not hasattr(args, "_show_version_"):
             return
 
-        if self.args._show_version_ is not True:
+        if args._show_version_ is not True:
             return
 
         version = self.version
@@ -147,7 +208,7 @@ class commands:
         std.write(" ".join(items))
         std.flush()
 
-    def __add_optional_version(self, argp: argp, root):
+    def __add_optional_version(self, argp: argp, root: add_command):
         if not isinstance(root, add_command):
             return
 
@@ -159,7 +220,7 @@ class commands:
                         dest="_show_version_",
                         help="show version and exit")
 
-    def __add_optional_debug(self, argp: argp, root):
+    def __add_optional_debug(self, argp: argp, root: add_command):
         if not isinstance(root, add_command):
             return
 
@@ -183,7 +244,7 @@ class commands:
                            "If this option has no value, it means\n"
                            f"{level.DEBUG.name.lower()}.\n")
 
-    def __add_optional_output(self, argp: argp, root):
+    def __add_optional_output(self, argp: argp, root: add_command):
         if not isinstance(root, add_command):
             return
 
@@ -203,7 +264,7 @@ class commands:
                            "If a file path is specified, output the log to\n"
                            "the specified file, otherwise redirect to stdout.")
 
-    def __add_parser(self, argp: argp, root):
+    def __add_parser(self, argp: argp, root: add_command):
         if not isinstance(root, add_command):
             return
 
@@ -223,20 +284,27 @@ class commands:
             self.__add_parser(_arg, sub)
 
     def parse(self,
+              root: Optional[add_command] = None,
               argv: Optional[Sequence[str]] = None,
-              **kwargs) -> Namespace:
+              **kwargs) -> Optional[Namespace]:
         '''
         Parse the command line.
         '''
+        if root is None:
+            root = self.root
+
+        if not isinstance(root, add_command):
+            return None
+
         _arg = argp(**kwargs)
-        self.__add_parser(_arg, self.root)
-        self.__add_optional_version(_arg, self.root)
+        self.__add_parser(_arg, root)
+        self.__add_optional_version(_arg, root)
 
         args = _arg.parse_args(argv)
         self.args = args
         return self.args
 
-    def __run(self, args, root) -> int:
+    def __run(self, args: Namespace, root: add_command) -> int:
         if not isinstance(root, add_command):
             return ENOENT
 
@@ -265,16 +333,26 @@ class commands:
 
         return 0
 
-    def run(self, argv: Optional[Sequence[str]] = None, **kwargs) -> int:
+    def run(self,
+            root: Optional[add_command] = None,
+            argv: Optional[Sequence[str]] = None,
+            **kwargs) -> int:
         '''
         Parse and run the command line.
         '''
-        args = self.parse(argv, **kwargs)
+        if root is None:
+            root = self.root
+
+        if not isinstance(root, add_command):
+            return ENOENT
+
+        args = self.parse(root, argv, **kwargs)
+        assert isinstance(args, Namespace)
         self.log(f"{args}", level.DEBUG)
         self.show_version(args)
 
         try:
-            return self.__run(args, self.root)
+            return self.__run(args, root)
         except KeyboardInterrupt:
             return EINTR
         except BaseException as e:
@@ -282,63 +360,3 @@ class commands:
             if self.debug_level >= level.DEBUG:
                 raise e
             return 10000
-
-
-class add_command:
-    '''
-    Define command-line arguments.
-
-    For example:
-
-    from xarg import add_command\n
-    from xarg import argp\n
-
-    @add_command('example')\n
-    def cmd(_arg: argp):\n
-        argp.add_opt_on('-t', '--test')\n
-    '''
-
-    def __init__(self, name: str, **kwargs):
-        self.cmds: commands = commands()
-        self.name: str = name
-        self.options = kwargs
-        self.bind: Optional[run_command] = None
-        self.subs: Optional[Tuple[add_command]] = None
-
-    def __call__(self, cmd_func):
-        self.func = cmd_func
-        return self
-
-    @property
-    def sub_dest(self):
-        return f"__sub_{self.name}_dest__"
-
-
-class run_command:
-    '''
-    Bind command-line arguments and subcommands, define callback functions.
-
-    For example:
-
-    from xarg import Namespace\n
-    from xarg import argp\n
-    from xarg import run_command\n
-
-    @run_command(cmd, cmd_get, cmd_set)\n
-    def run(args: Namespace) -> int:\n
-        return 0\n
-    '''
-
-    def __init__(self, cmd_bind: add_command, *subs):
-        assert isinstance(cmd_bind, add_command)
-        for sub in subs:
-            assert isinstance(sub, add_command)
-
-        cmd_bind.bind = self
-        cmd_bind.subs = subs
-        self.bind: add_command = cmd_bind
-        commands().root = cmd_bind
-
-    def __call__(self, run_func):
-        self.func = run_func
-        return self
