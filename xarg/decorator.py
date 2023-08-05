@@ -267,7 +267,7 @@ class commands:
                            "If a file path is specified, output the log to\n"
                            "the specified file, otherwise redirect to stdout.")
 
-    def __add_parser(self, argp: argp, root: add_command):
+    def __add_parser(self, argp: argp, root: add_command, **kwargs):
         if not isinstance(root, add_command):
             return
 
@@ -283,6 +283,8 @@ class commands:
         for sub in subs:
             if not isinstance(sub, add_command):
                 continue
+            for key in kwargs:
+                sub.options.setdefault(key, kwargs.get(key))
             _arg = _sub.add_parser(sub.name, **sub.options)
             self.__add_parser(_arg, sub)
 
@@ -300,7 +302,7 @@ class commands:
             return None
 
         _arg = argp(**kwargs)
-        self.__add_parser(_arg, root)
+        self.__add_parser(_arg, root, **kwargs)
         self.__add_optional_version(_arg, root)
 
         args = _arg.parse_args(argv)
