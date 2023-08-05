@@ -9,6 +9,7 @@ from typing import Optional
 from .checker import check_name_opt
 from .checker import check_name_pos
 from .checker import check_nargs_opt
+from .util import URL_PROG
 
 
 class argp(ArgumentParser):
@@ -19,8 +20,8 @@ class argp(ArgumentParser):
     def __init__(self,
                  prog: Optional[str] = None,
                  usage: Optional[str] = None,
-                 description: Optional[str] = None,
-                 epilog: Optional[str] = None,
+                 description: Optional[str] = "Command-line based on xarg.",
+                 epilog: Optional[str] = f"For more, please visit {URL_PROG}",
                  **kwargs):
         kwargs.setdefault("prog", prog)
         kwargs.setdefault("usage", usage)
