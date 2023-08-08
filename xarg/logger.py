@@ -12,3 +12,11 @@ class level(enum.IntEnum):
     INFO = 1000
     DEBUG = 10000
     TRACE = 20000
+
+
+FATAL = level.FATAL
+ERROR = level.ERROR
+WARN = level.WARN
+INFO = level.INFO
+DEBUG = level.DEBUG
+TRACE = level.TRACE
