@@ -52,12 +52,11 @@ class run_command:
 
     For example:
 
-    from xarg import Namespace\n
     from xarg import argp\n
     from xarg import run_command\n
 
     @run_command(cmd, cmd_get, cmd_set)\n
-    def run(args: Namespace) -> int:\n
+    def run(cmds: commands) -> int:\n
         return 0\n
     '''
 
@@ -99,7 +98,6 @@ class commands:
     from typing import Optional\n
     from typing import Sequence\n
 
-    from xarg import Namespace\n
     from xarg import add_command\n
     from xarg import argp\n
     from xarg import commands\n
@@ -110,7 +108,7 @@ class commands:
         argp.add_opt_on('-t', '--test')\n
 
     @run_command(cmd, cmd_get, cmd_set)\n
-    def run(args: Namespace) -> int:\n
+    def run(cmds: commands) -> int:\n
         return 0\n
 
     def main(argv: Optional[Sequence[str]] = None) -> int:\n
@@ -122,10 +120,28 @@ class commands:
     '''
 
     def __init__(self):
-        self.root: Optional[add_command] = None
-        self.args: Optional[Namespace] = None
+        self.__root: Optional[add_command] = None
+        self.__args: Optional[Namespace] = None
         self.__version: Optional[str] = None
         self.__timefmt: Optional[str] = "%Y-%m-%d %a %H:%M:%S.%f"
+
+    @property
+    def root(self) -> Optional[add_command]:
+        '''
+        Root Command.
+        '''
+        return self.__root
+
+    @root.setter
+    def root(self, value: add_command):
+        self.__root = value
+
+    @property
+    def args(self) -> Optional[Namespace]:
+        '''
+        Namespace after parse arguments.
+        '''
+        return self.__args
 
     @property
     def version(self) -> Optional[str]:
@@ -178,10 +194,10 @@ class commands:
         '''
         The logger output level. If not specified, the default is WARN.
         '''
-        if isinstance(self.args, Namespace) and\
-           hasattr(self.args, "_debug_level_str_") and\
-           isinstance(self.args._debug_level_str_, str):
-            return level.__members__[self.args._debug_level_str_.upper()]
+        if isinstance(self.__args, Namespace) and\
+           hasattr(self.__args, "_debug_level_str_") and\
+           isinstance(self.__args._debug_level_str_, str):
+            return level.__members__[self.__args._debug_level_str_.upper()]
 
         return level.WARN
 
@@ -197,9 +213,9 @@ class commands:
             return
 
         std: TextIO = sys.stderr
-        if isinstance(self.args, Namespace) and\
-           hasattr(self.args, "_log_output_stream_"):
-            std = self.args._log_output_stream_
+        if isinstance(self.__args, Namespace) and\
+           hasattr(self.__args, "_log_output_stream_"):
+            std = self.__args._log_output_stream_
 
         items = []
         if isinstance(self.timefmt, str):
@@ -296,7 +312,7 @@ class commands:
         Parse the command line.
         '''
         if root is None:
-            root = self.root
+            root = self.__root
 
         if not isinstance(root, add_command):
             return None
@@ -306,8 +322,8 @@ class commands:
         self.__add_optional_version(_arg, root)
 
         args = _arg.parse_args(argv)
-        self.args = args
-        return self.args
+        self.__args = args
+        return self.__args
 
     def __run(self, args: Namespace, root: add_command) -> int:
         if not isinstance(root, add_command):
@@ -316,7 +332,7 @@ class commands:
         if not isinstance(root.bind, run_command):
             return ENOENT
 
-        ret = root.bind.func(args)
+        ret = root.bind.func(self)
         if ret != 0 and ret is not None:
             return ret
 
@@ -346,7 +362,7 @@ class commands:
         Parse and run the command line.
         '''
         if root is None:
-            root = self.root
+            root = self.__root
 
         if not isinstance(root, add_command):
             return ENOENT
