@@ -134,7 +134,8 @@ class commands:
 
     @root.setter
     def root(self, value: add_command):
-        self.__root = value
+        if isinstance(value, add_command):
+            self.__root = value
 
     @property
     def args(self) -> Optional[Namespace]:
@@ -152,7 +153,9 @@ class commands:
 
     @version.setter
     def version(self, value: str):
-        self.__version = value
+        if isinstance(value, str):
+            _version = value.strip()
+            self.__version = _version
 
     def show_version(self, args: Namespace):
         '''
@@ -171,7 +174,7 @@ class commands:
         if not isinstance(version, str):
             return
 
-        sys.stdout.write(f'{version}\n')
+        sys.stdout.write(f"version: {version}\n")
         sys.stdout.flush()
         sys.exit(0)
 
@@ -187,17 +190,21 @@ class commands:
 
     @timefmt.setter
     def timefmt(self, value: Optional[str]):
-        self.__timefmt = value
+        if isinstance(value, str):
+            _timefmt = value.strip()
+            self.__timefmt = _timefmt
+        elif value is None:
+            self.__timefmt = value
 
     @property
     def debug_level(self) -> int:
         '''
         The logger output level. If not specified, the default is WARN.
         '''
-        if isinstance(self.__args, Namespace) and\
-           hasattr(self.__args, "_debug_level_str_") and\
-           isinstance(self.__args._debug_level_str_, str):
-            return level.__members__[self.__args._debug_level_str_.upper()]
+        if isinstance(self.args, Namespace) and\
+           hasattr(self.args, "_debug_level_str_") and\
+           isinstance(self.args._debug_level_str_, str):
+            return level.__members__[self.args._debug_level_str_.upper()]
 
         return level.WARN
 
@@ -213,9 +220,9 @@ class commands:
             return
 
         std: TextIO = sys.stderr
-        if isinstance(self.__args, Namespace) and\
-           hasattr(self.__args, "_log_output_stream_"):
-            std = self.__args._log_output_stream_
+        if isinstance(self.args, Namespace) and\
+           hasattr(self.args, "_log_output_stream_"):
+            std = self.args._log_output_stream_
 
         items = []
         if isinstance(self.timefmt, str):
@@ -307,21 +314,21 @@ class commands:
     def parse(self,
               root: Optional[add_command] = None,
               argv: Optional[Sequence[str]] = None,
-              **kwargs) -> Optional[Namespace]:
+              **kwargs) -> Namespace:
         '''
         Parse the command line.
         '''
         if root is None:
             root = self.__root
 
-        if not isinstance(root, add_command):
-            return None
+        assert isinstance(root, add_command)
 
         _arg = argp(**kwargs)
         self.__add_parser(_arg, root, **kwargs)
         self.__add_optional_version(_arg, root)
 
         args = _arg.parse_args(argv)
+        assert isinstance(args, Namespace)
         self.__args = args
         return self.__args
 
@@ -365,14 +372,18 @@ class commands:
             root = self.__root
 
         if not isinstance(root, add_command):
+            self.log("cannot find root", level.DEBUG)
             return ENOENT
 
         args = self.parse(root, argv, **kwargs)
-        assert isinstance(args, Namespace)
         self.log(f"{args}", level.DEBUG)
         self.show_version(args)
 
         try:
+            version = self.version
+            if isinstance(version, str):
+                self.log(f"version: {version}", level.INFO)
+
             return self.__run(args, root)
         except KeyboardInterrupt:
             return EINTR
