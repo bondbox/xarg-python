@@ -144,6 +144,11 @@ class commands:
         '''
         return self.__args
 
+    @args.setter
+    def args(self, value: Namespace):
+        if isinstance(value, Namespace):
+            self.__args = value
+
     @property
     def version(self) -> Optional[str]:
         '''

@@ -3,6 +3,7 @@
 
 __version__ = "0.10"
 
+from .decorator import Namespace
 from .decorator import commands
 from .decorator import add_command
 from .decorator import run_command
