@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # coding:utf-8
 
-__version__ = "0.9"
+__version__ = "0.10"
 
 from .decorator import commands
 from .decorator import add_command
