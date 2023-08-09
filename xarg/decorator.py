@@ -208,6 +208,20 @@ class commands:
 
         return level.WARN
 
+    def stdout(self, context):
+        '''
+        Output string to sys.stdout.
+        '''
+        sys.stdout.write(f"{context}\n")
+        sys.stdout.flush()
+
+    def stderr(self, context):
+        '''
+        Output string to sys.stderr.
+        '''
+        sys.stderr.write(f"{context}\n")
+        sys.stderr.flush()
+
     def log(self, context, level: int = level.DEBUG):
         '''
         Output logs to the specified stream.
@@ -227,7 +241,7 @@ class commands:
         items = []
         if isinstance(self.timefmt, str):
             items.append(datetime.now().strftime(self.timefmt))
-        items.append(f'{context}\n')
+        items.append(f"{context}\n")
         std.write(" ".join(items))
         std.flush()
 
