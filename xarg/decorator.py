@@ -120,8 +120,8 @@ class commands:
     '''
 
     def __init__(self):
+        self.__args: Namespace = Namespace()
         self.__root: Optional[add_command] = None
-        self.__args: Optional[Namespace] = None
         self.__version: Optional[str] = None
         self.__timefmt: Optional[str] = "%Y-%m-%d %a %H:%M:%S.%f"
 
@@ -138,10 +138,11 @@ class commands:
             self.__root = value
 
     @property
-    def args(self) -> Optional[Namespace]:
+    def args(self) -> Namespace:
         '''
         Namespace after parse arguments.
         '''
+        assert isinstance(self.__args, Namespace)
         return self.__args
 
     @args.setter
