@@ -11,6 +11,7 @@ from typing import Optional
 from typing import Sequence
 from typing import TextIO
 from typing import Tuple
+from typing import Union
 
 from .logger import level
 from .parser import argp
@@ -124,6 +125,7 @@ class commands:
         self.__root: Optional[add_command] = None
         self.__version: Optional[str] = None
         self.__timefmt: Optional[str] = "%Y-%m-%d %a %H:%M:%S.%f"
+        self.__debug_level: level = level.WARN
 
     @property
     def root(self) -> Optional[add_command]:
@@ -203,16 +205,21 @@ class commands:
             self.__timefmt = value
 
     @property
-    def debug_level(self) -> int:
+    def debug_level(self) -> level:
         '''
         The logger output level. If not specified, the default is WARN.
         '''
-        if isinstance(self.args, Namespace) and\
-           hasattr(self.args, "_debug_level_str_") and\
-           isinstance(self.args._debug_level_str_, str):
-            return level.__members__[self.args._debug_level_str_.upper()]
+        return self.__debug_level
 
-        return level.WARN
+    @debug_level.setter
+    def debug_level(self, value: Union[level, str]):
+        members = level.__members__
+        if isinstance(value, str):
+            key = value.upper()
+            if key in members.keys():
+                self.__debug_level = members[key]
+        elif value in members.values():
+            self.__debug_level = {v: v for v in members.values()}[value]
 
     def stdout(self, context):
         '''
@@ -228,7 +235,7 @@ class commands:
         sys.stderr.write(f"{context}\n")
         sys.stderr.flush()
 
-    def log(self, context, level: int = level.DEBUG):
+    def log(self, context, level: level = level.DEBUG):
         '''
         Output logs to the specified stream.
 
@@ -349,6 +356,12 @@ class commands:
 
         args = _arg.parse_args(argv)
         assert isinstance(args, Namespace)
+
+        # save debug level to local variable
+        if hasattr(args, "_debug_level_str_") and\
+           isinstance(args._debug_level_str_, str):
+            self.debug_level = args._debug_level_str_
+
         self.__args = args
         return self.__args
 
