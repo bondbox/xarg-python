@@ -13,6 +13,10 @@ from typing import TextIO
 from typing import Tuple
 from typing import Union
 
+from .logger import FRAME
+from .logger import THREAD
+from .logger import TIMESTAMP
+from .logger import detail
 from .logger import level
 from .parser import argp
 
@@ -26,9 +30,9 @@ class add_command:
     from xarg import add_command\n
     from xarg import argp\n
 
-    @add_command('example')\n
+    @add_command("example")\n
     def cmd(_arg: argp):\n
-        argp.add_opt_on('-t', '--test')\n
+        argp.add_opt_on("-t", "--test")\n
     '''
 
     def __init__(self, name: str, **kwargs):
@@ -104,9 +108,9 @@ class commands:
     from xarg import commands\n
     from xarg import run_command\n
 
-    @add_command('example')\n
+    @add_command("example")\n
     def cmd(_arg: argp):\n
-        argp.add_opt_on('-t', '--test')\n
+        argp.add_opt_on("-t", "--test")\n
 
     @run_command(cmd, cmd_get, cmd_set)\n
     def run(cmds: commands) -> int:\n
@@ -125,6 +129,7 @@ class commands:
         self.__root: Optional[add_command] = None
         self.__version: Optional[str] = None
         self.__timefmt: Optional[str] = "%Y-%m-%d %a %H:%M:%S.%f"
+        self.__log_details: detail = detail.NONE
         self.__debug_level: level = level.WARN
 
     @property
@@ -187,6 +192,35 @@ class commands:
         sys.exit(0)
 
     @property
+    def debug_level(self) -> level:
+        '''
+        The logger output level. If not specified, the default is WARN.
+        '''
+        return self.__debug_level
+
+    @debug_level.setter
+    def debug_level(self, value: Union[level, str]):
+        members = level.__members__
+        if isinstance(value, str):
+            key = value.upper()
+            if key in members.keys():
+                self.__debug_level = members[key]
+        elif value in members.values():
+            self.__debug_level = {v: v for v in members.values()}[value]
+
+    @property
+    def log_detail(self) -> detail:
+        '''
+        The logger output details. If not specified, the default is NONE.
+        '''
+        return self.__log_details
+
+    @log_detail.setter
+    def log_detail(self, value: detail):
+        if isinstance(value, detail):
+            self.__log_details = value
+
+    @property
     def timefmt(self) -> Optional[str]:
         '''
         The timestamp format for the logger.
@@ -203,23 +237,6 @@ class commands:
             self.__timefmt = _timefmt
         elif value is None:
             self.__timefmt = value
-
-    @property
-    def debug_level(self) -> level:
-        '''
-        The logger output level. If not specified, the default is WARN.
-        '''
-        return self.__debug_level
-
-    @debug_level.setter
-    def debug_level(self, value: Union[level, str]):
-        members = level.__members__
-        if isinstance(value, str):
-            key = value.upper()
-            if key in members.keys():
-                self.__debug_level = members[key]
-        elif value in members.values():
-            self.__debug_level = {v: v for v in members.values()}[value]
 
     def stdout(self, context):
         '''
@@ -252,9 +269,14 @@ class commands:
             std = self.args._log_output_stream_
 
         items = []
-        if isinstance(self.timefmt, str):
+        if TIMESTAMP in self.log_detail and isinstance(self.timefmt, str):
             items.append(datetime.now().strftime(self.timefmt))
+        if THREAD in self.log_detail:
+            pass
+        if FRAME in self.log_detail:
+            pass
         items.append(f"{context}\n")
+
         std.write(" ".join(items))
         std.flush()
 
@@ -265,7 +287,7 @@ class commands:
         if not isinstance(root, add_command):
             return
 
-        options = argp.filter_optional_name('-v', '--version')
+        options = argp.filter_optional_name("-v", "--version")
         if len(options) <= 0:
             return
 
@@ -277,7 +299,7 @@ class commands:
         if not isinstance(root, add_command):
             return
 
-        options = argp.filter_optional_name('-d', '--debug')
+        options = argp.filter_optional_name("-d", "--debug")
         if len(options) <= 0:
             return
 
@@ -301,21 +323,46 @@ class commands:
         if not isinstance(root, add_command):
             return
 
-        options = argp.filter_optional_name('-o', '--output')
+        options = argp.filter_optional_name("-o", "--output")
         if len(options) <= 0:
             return
 
         group = argp.argument_group("logger optional arguments")
         group.add_argument(*options,
-                           type=FileType('a', encoding='UTF-8'),
+                           type=FileType("a", encoding="UTF-8"),
                            nargs="?",
                            const=sys.stdout,
                            default=sys.stderr,
-                           metavar='log file',
+                           metavar="log file",
                            dest="_log_output_stream_",
                            help="Specify log output stream, default stderr.\n"
                            "If a file path is specified, output the log to\n"
                            "the specified file, otherwise redirect to stdout.")
+
+    def __add_optional_detail(self, argp: argp, root: add_command):
+        if not isinstance(root, add_command):
+            return
+
+        options = argp.filter_optional_name("--detail", "--log-detail")
+        if len(options) <= 0:
+            return
+
+        if "--detail" in options:
+            options -= set(["--log-detail"])
+
+        def get_log_detail_name():
+            values = set(detail.__members__.values()) - set([detail.NONE])
+            return [v.name.lower() for v in values]
+
+        group = argp.argument_group("logger optional arguments")
+        group.add_argument(*options,
+                           type=str,
+                           nargs="+",
+                           default=[],
+                           choices=get_log_detail_name(),
+                           dest="_log_detail_",
+                           help="Specify log output details, default\n"
+                           f"{detail.NONE.name.lower()}.\n")
 
     def __add_parser(self, argp: argp, root: add_command, **kwargs):
         if not isinstance(root, add_command):
@@ -324,6 +371,7 @@ class commands:
         root.func(argp)
         self.__add_optional_debug(argp, root)
         self.__add_optional_output(argp, root)
+        self.__add_optional_detail(argp, root)
 
         subs = root.subs
         if not isinstance(subs, tuple) or len(subs) <= 0:
@@ -361,6 +409,13 @@ class commands:
         if hasattr(args, "_debug_level_str_") and\
            isinstance(args._debug_level_str_, str):
             self.debug_level = args._debug_level_str_
+
+        # save log detail to local variable
+        if hasattr(args, "_log_detail_") and\
+           isinstance(args._log_detail_, list):
+            for v in args._log_detail_:
+                assert isinstance(v, str)
+                self.log_detail |= detail[v.upper()]
 
         self.__args = args
         return self.__args

@@ -56,7 +56,7 @@ class argp(ArgumentParser):
         '''
         Add positional argument.
         '''
-        assert 'dest' not in kwargs,\
+        assert "dest" not in kwargs,\
             "dest supplied twice for positional argument"
         self.add_argument(name, **kwargs)
 
@@ -73,7 +73,7 @@ class argp(ArgumentParser):
         '''
         Add boolean optional argument, default value is False.
         '''
-        kwargs.update({"action": 'store_true'})
+        kwargs.update({"action": "store_true"})
         for key in ("type", "nargs", "const", "default", "choices"):
             assert key not in kwargs, f"'{key}' is an invalid argument"
         self.add_argument(*name, **kwargs)
@@ -83,7 +83,7 @@ class argp(ArgumentParser):
         '''
         Add boolean optional argument, default value is True.
         '''
-        kwargs.update({"action": 'store_false'})
+        kwargs.update({"action": "store_false"})
         for key in ("type", "nargs", "const", "default", "choices"):
             assert key not in kwargs, f"'{key}' is an invalid argument"
         self.add_argument(*name, **kwargs)
