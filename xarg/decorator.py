@@ -170,27 +170,6 @@ class commands:
             _version = value.strip()
             self.__version = _version
 
-    def show_version(self, args: Namespace):
-        '''
-        Show version and exit.
-        '''
-        if not isinstance(args, Namespace):
-            return
-
-        if not hasattr(args, "_show_version_"):
-            return
-
-        if args._show_version_ is not True:
-            return
-
-        version = self.version
-        if not isinstance(version, str):
-            return
-
-        sys.stdout.write(f"version: {version}\n")
-        sys.stdout.flush()
-        sys.exit(0)
-
     @property
     def debug_level(self) -> level:
         '''
@@ -291,9 +270,9 @@ class commands:
         if len(options) <= 0:
             return
 
-        argp.add_opt_on(*options,
-                        dest="_show_version_",
-                        help="show version and exit")
+        argp.add_argument(*options,
+                          action="version",
+                          version=f"%(prog)s {self.version}")
 
     def __add_optional_debug(self, argp: argp, root: add_command):
         if not isinstance(root, add_command):
@@ -465,7 +444,6 @@ class commands:
 
         args = self.parse(root, argv, **kwargs)
         self.log(f"{args}", level.DEBUG)
-        self.show_version(args)
 
         try:
             version = self.version
