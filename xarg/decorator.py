@@ -6,15 +6,19 @@ from argparse import Namespace
 from datetime import datetime
 from errno import EINTR
 from errno import ENOENT
+import os
 import sys
+from threading import current_thread
 from typing import Optional
 from typing import Sequence
 from typing import TextIO
 from typing import Tuple
 from typing import Union
 
-from .logger import FRAME
-from .logger import THREAD
+from .logger import FILENAME
+from .logger import FUNCTION
+from .logger import THREADID
+from .logger import THREADNAME
 from .logger import TIMESTAMP
 from .logger import detail
 from .logger import level
@@ -250,10 +254,21 @@ class commands:
         items = []
         if TIMESTAMP in self.log_detail and isinstance(self.timefmt, str):
             items.append(datetime.now().strftime(self.timefmt))
-        if THREAD in self.log_detail:
-            pass
-        if FRAME in self.log_detail:
-            pass
+        if THREADID in self.log_detail:
+            ident = current_thread().ident
+            if isinstance(ident, int):
+                items.append(str(ident))
+        if THREADNAME in self.log_detail:
+            items.append(current_thread().getName())
+        if FILENAME in self.log_detail or FUNCTION in self.log_detail:
+            f_back = sys._getframe().f_back
+            if f_back:
+                if FILENAME in self.log_detail:
+                    filename = f_back.f_code.co_filename
+                    lineno = f_back.f_lineno
+                    items.append(f"{os.path.basename(filename)}:{lineno}")
+                if FUNCTION in self.log_detail:
+                    items.append(f_back.f_code.co_name)
         items.append(f"{context}\n")
 
         std.write(" ".join(items))

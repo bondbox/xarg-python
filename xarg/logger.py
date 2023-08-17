@@ -26,11 +26,17 @@ TRACE = level.TRACE
 class detail(enum.IntFlag):
     NONE = 0
     TIMESTAMP = 1 << 0
-    THREAD = 1 << 1
-    FRAME = 1 << 2
+    THREADID = 1 << 1
+    THREADNAME = 1 << 2
+    THREAD = THREADID | THREADNAME
+    FILENAME = 1 << 5
+    FUNCTION = 1 << 6
+    FRAME = FILENAME | FUNCTION
     ALL = TIMESTAMP | THREAD | FRAME
 
 
 TIMESTAMP = detail.TIMESTAMP
-THREAD = detail.THREAD
-FRAME = detail.FRAME
+THREADID = detail.THREADID
+THREADNAME = detail.THREADNAME
+FILENAME = detail.FILENAME
+FUNCTION = detail.FUNCTION
