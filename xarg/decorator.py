@@ -17,6 +17,7 @@ from typing import Union
 
 from .logger import FILENAME
 from .logger import FUNCTION
+from .logger import PID
 from .logger import THREADID
 from .logger import THREADNAME
 from .logger import TIMESTAMP
@@ -254,6 +255,8 @@ class commands:
         items = []
         if TIMESTAMP in self.log_detail and isinstance(self.timefmt, str):
             items.append(datetime.now().strftime(self.timefmt))
+        if PID in self.log_detail:
+            items.append(str(os.getpid()))
         if THREADID in self.log_detail:
             ident = current_thread().ident
             if isinstance(ident, int):
