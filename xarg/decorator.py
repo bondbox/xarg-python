@@ -17,6 +17,7 @@ from typing import Union
 
 from .logger import FILENAME
 from .logger import FUNCTION
+from .logger import LEVEL
 from .logger import PID
 from .logger import THREADID
 from .logger import THREADNAME
@@ -236,7 +237,7 @@ class commands:
         sys.stderr.write(f"{context}\n")
         sys.stderr.flush()
 
-    def log(self, context, level: level = level.DEBUG):
+    def log(self, context, debug_level: level = level.DEBUG):
         '''
         Output logs to the specified stream.
 
@@ -244,7 +245,8 @@ class commands:
         the log level is less than or equal to the specified level, the
         log will be output to the specified stream.
         '''
-        if level > self.debug_level:
+        assert isinstance(debug_level, level)
+        if debug_level > self.debug_level:
             return
 
         std: TextIO = sys.stderr
@@ -263,6 +265,8 @@ class commands:
                 items.append(str(ident))
         if THREADNAME in self.log_detail:
             items.append(current_thread().getName())
+        if LEVEL in self.log_detail:
+            items.append(debug_level.name)
         if FILENAME in self.log_detail or FUNCTION in self.log_detail:
             f_back = sys._getframe().f_back
             if f_back:

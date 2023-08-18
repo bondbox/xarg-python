@@ -27,18 +27,20 @@ class detail(enum.IntFlag):
     NONE = 0
     TIMESTAMP = 1 << 0
     PID = 1 << 1
-    THREADID = 1 << 2
-    THREADNAME = 1 << 3
+    THREADID = 1 << 3
+    THREADNAME = 1 << 4
     THREAD = THREADID | THREADNAME
-    FILENAME = 1 << 6
-    FUNCTION = 1 << 7
+    LEVEL = 1 << 7
+    FILENAME = 1 << 9
+    FUNCTION = 1 << 10
     FRAME = FILENAME | FUNCTION
-    ALL = TIMESTAMP | PID | THREAD | FRAME
+    ALL = TIMESTAMP | PID | THREAD | LEVEL | FRAME
 
 
 TIMESTAMP = detail.TIMESTAMP
 PID = detail.PID
 THREADID = detail.THREADID
 THREADNAME = detail.THREADNAME
+LEVEL = detail.LEVEL
 FILENAME = detail.FILENAME
 FUNCTION = detail.FUNCTION
