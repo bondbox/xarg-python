@@ -394,7 +394,7 @@ class commands:
         Parse the command line.
         '''
         if root is None:
-            root = self.__root
+            root = self.root
 
         assert isinstance(root, add_command)
 
@@ -417,8 +417,8 @@ class commands:
                 assert isinstance(v, str)
                 self.log_detail |= detail[v.upper()]
 
-        self.__args = args
-        return self.__args
+        self.args = args
+        return self.args
 
     def __run(self, args: Namespace, root: add_command) -> int:
         if not isinstance(root, add_command):
@@ -432,20 +432,22 @@ class commands:
             return ret
 
         if hasattr(args, root.sub_dest):
+
             sub_name = getattr(args, root.sub_dest)
+            if isinstance(sub_name, str):
 
-            subs = root.subs
-            if not (isinstance(subs, list) or isinstance(subs, tuple)):
+                subs = root.subs
+                if not (isinstance(subs, list) or isinstance(subs, tuple)):
+                    return ENOENT
+
+                for sub in subs:
+                    if not isinstance(sub, add_command):
+                        continue
+
+                    if sub.name == sub_name:
+                        return self.__run(args, sub)
+
                 return ENOENT
-
-            for sub in subs:
-                if not isinstance(sub, add_command):
-                    continue
-
-                if sub.name == sub_name:
-                    return self.__run(args, sub)
-
-            return ENOENT
 
         return 0
 
@@ -457,7 +459,7 @@ class commands:
         Parse and run the command line.
         '''
         if root is None:
-            root = self.__root
+            root = self.root
 
         if not isinstance(root, add_command):
             self.log("cannot find root", level.DEBUG)

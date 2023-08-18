@@ -26,13 +26,13 @@ class Test_argp(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @mock.patch.object(sys, 'exit')
+    @mock.patch.object(sys, "exit")
     def test_help_optional_h(self, mock_exit: mock.Mock):
         mock_exit.side_effect = [Exception("xarg-test")]
         self.assertRaises(Exception, self.argp.parse_args, "-h".split())
         mock_exit.assert_called_once_with(0)
 
-    @mock.patch.object(sys, 'exit')
+    @mock.patch.object(sys, "exit")
     def test_help_optional_help(self, mock_exit: mock.Mock):
         mock_exit.side_effect = [Exception("xarg-test")]
         self.assertRaises(Exception, self.argp.parse_args, "--help".split())
