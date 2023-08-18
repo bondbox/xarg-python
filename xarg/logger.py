@@ -27,9 +27,9 @@ class detail(enum.IntFlag):
     NONE = 0
     TIMESTAMP = 1 << 0
     PID = 1 << 1
-    THREADID = 1 << 3
-    THREADNAME = 1 << 4
-    THREAD = THREADID | THREADNAME
+    # THREADID = 1 << 3
+    # THREADNAME = 1 << 4
+    THREAD = 1 << 4
     LEVEL = 1 << 7
     FILENAME = 1 << 9
     FUNCTION = 1 << 10
@@ -39,8 +39,9 @@ class detail(enum.IntFlag):
 
 TIMESTAMP = detail.TIMESTAMP
 PID = detail.PID
-THREADID = detail.THREADID
-THREADNAME = detail.THREADNAME
+# THREADID = detail.THREADID
+# THREADNAME = detail.THREADNAME
+THREAD = detail.THREAD
 LEVEL = detail.LEVEL
 FILENAME = detail.FILENAME
 FUNCTION = detail.FUNCTION

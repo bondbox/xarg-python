@@ -19,8 +19,7 @@ from .logger import FILENAME
 from .logger import FUNCTION
 from .logger import LEVEL
 from .logger import PID
-from .logger import THREADID
-from .logger import THREADNAME
+from .logger import THREAD
 from .logger import TIMESTAMP
 from .logger import detail
 from .logger import level
@@ -259,11 +258,11 @@ class commands:
             items.append(datetime.now().strftime(self.timefmt))
         if PID in self.log_detail:
             items.append(str(os.getpid()))
-        if THREADID in self.log_detail:
-            ident = current_thread().ident
-            if isinstance(ident, int):
-                items.append(str(ident))
-        if THREADNAME in self.log_detail:
+        # if THREADID in self.log_detail:
+        #     ident = current_thread().ident
+        #     if isinstance(ident, int):
+        #         items.append(str(ident))
+        if THREAD in self.log_detail:
             items.append(current_thread().getName())
         if LEVEL in self.log_detail:
             items.append(debug_level.name)
