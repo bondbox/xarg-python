@@ -355,14 +355,19 @@ class commands:
             return [v.name.lower() for v in values]
 
         group = argp.argument_group("logger optional arguments")
+        # group.add_argument(*options,
+        #                    type=str,
+        #                    nargs="+",
+        #                    default=[],
+        #                    choices=get_log_detail_name(),
+        #                    dest="_log_detail_",
+        #                    help="Specify log output details, default\n"
+        #                    f"{detail.NONE.name.lower()}.\n")
         group.add_argument(*options,
-                           type=str,
-                           nargs="+",
-                           default=[],
-                           choices=get_log_detail_name(),
+                           action="store_true",
                            dest="_log_detail_",
-                           help="Specify log output details, default\n"
-                           f"{detail.NONE.name.lower()}.\n")
+                           help="Logger output details, such as timestamp, \n"
+                           "PID, thread, filename and line number.")
 
     def __add_parser(self, argp: argp, root: add_command, **kwargs):
         if not isinstance(root, add_command):
@@ -411,11 +416,14 @@ class commands:
             self.debug_level = args._debug_level_str_
 
         # save log detail to local variable
+        # if hasattr(args, "_log_detail_") and\
+        #    isinstance(args._log_detail_, list):
+        #     for v in args._log_detail_:
+        #         assert isinstance(v, str)
+        #         self.log_detail |= detail[v.upper()]
         if hasattr(args, "_log_detail_") and\
-           isinstance(args._log_detail_, list):
-            for v in args._log_detail_:
-                assert isinstance(v, str)
-                self.log_detail |= detail[v.upper()]
+           isinstance(args._log_detail_, bool) and args._log_detail_ is True:
+            self.log_detail = detail.ALL
 
         self.args = args
         return self.args

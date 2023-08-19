@@ -93,7 +93,7 @@ class Test_decorator(unittest.TestCase):
 
     def test_subcommand_list(self):
         ret = self.cmds.run(add_cmd,
-                            "list --detail all".split(),
+                            "list --detail".split(),
                             prog="example")
         self.assertEqual(ret, -1)
 
