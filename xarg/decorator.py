@@ -404,8 +404,8 @@ class commands:
         assert isinstance(root, add_command)
 
         _arg = argp(**kwargs)
-        self.__add_parser(_arg, root, **kwargs)
         self.__add_optional_version(_arg, root)
+        self.__add_parser(_arg, root, **kwargs)
 
         args = _arg.parse_args(argv)
         assert isinstance(args, Namespace)
