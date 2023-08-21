@@ -133,7 +133,7 @@ class commands:
         self.__args: Namespace = Namespace()
         self.__root: Optional[add_command] = None
         self.__version: Optional[str] = None
-        self.__timefmt: Optional[str] = "%Y-%m-%d %a %H:%M:%S.%f"
+        self.__timefmt: Optional[str] = "%y-%m-%d %a %X.%f"
         self.__log_details: detail = detail.NONE
         self.__debug_level: level = level.WARN
 
