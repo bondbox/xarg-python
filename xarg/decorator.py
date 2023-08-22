@@ -479,7 +479,9 @@ class commands:
         try:
             version = self.version
             if isinstance(version, str):
-                self.log(f"version: {version}", level.INFO)
+                # Output version for the debug level. Internal log
+                # items are debug level only, except for errors.
+                self.log(f"version: {version}", level.DEBUG)
 
             return self.__run(args, root)
         except KeyboardInterrupt:
