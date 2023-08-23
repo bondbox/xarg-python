@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # coding:utf-8
 
-__version__ = "0.10"
+__version__ = "0.11.alpha.1"
 
 from .decorator import Namespace
 from .decorator import commands
