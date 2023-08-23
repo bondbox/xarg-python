@@ -1,28 +1,16 @@
 #!/usr/bin/python3
 # coding:utf-8
 
-from argparse import FileType
 from argparse import Namespace
-from datetime import datetime
 from errno import EINTR
 from errno import ENOENT
-import os
+import logging
 import sys
-from threading import current_thread
+from typing import List
 from typing import Optional
 from typing import Sequence
-from typing import TextIO
 from typing import Tuple
-from typing import Union
 
-from .logger import FILENAME
-from .logger import FUNCTION
-from .logger import LEVEL
-from .logger import PID
-from .logger import THREAD
-from .logger import TIMESTAMP
-from .logger import detail
-from .logger import level
 from .parser import argp
 
 
@@ -130,12 +118,14 @@ class commands:
     '''
 
     def __init__(self):
-        self.__args: Namespace = Namespace()
+        self.__prog: str = "xarg"
         self.__root: Optional[add_command] = None
+        self.__args: Namespace = Namespace()
         self.__version: Optional[str] = None
-        self.__timefmt: Optional[str] = "%y-%m-%d %a %X.%f"
-        self.__log_details: detail = detail.NONE
-        self.__debug_level: level = level.WARN
+
+    @property
+    def prog(self) -> str:
+        return self.__prog
 
     @property
     def root(self) -> Optional[add_command]:
@@ -176,51 +166,11 @@ class commands:
             self.__version = _version
 
     @property
-    def debug_level(self) -> level:
+    def logger(self) -> logging.Logger:
         '''
-        The logger output level. If not specified, the default is WARN.
+        Logger.
         '''
-        return self.__debug_level
-
-    @debug_level.setter
-    def debug_level(self, value: Union[level, str]):
-        members = level.__members__
-        if isinstance(value, str):
-            key = value.upper()
-            if key in members.keys():
-                self.__debug_level = members[key]
-        elif value in members.values():
-            self.__debug_level = {v: v for v in members.values()}[value]
-
-    @property
-    def log_detail(self) -> detail:
-        '''
-        The logger output details. If not specified, the default is NONE.
-        '''
-        return self.__log_details
-
-    @log_detail.setter
-    def log_detail(self, value: detail):
-        if isinstance(value, detail):
-            self.__log_details = value
-
-    @property
-    def timefmt(self) -> Optional[str]:
-        '''
-        The timestamp format for the logger.
-
-        Suggestion: only set before running! If the log format is changed
-        while calling run(), the output will be messy.
-        '''
-        return self.__timefmt
-
-    @timefmt.setter
-    def timefmt(self, value: Optional[str]):
-        if isinstance(value, str):
-            _timefmt = value.strip()
-            self.__timefmt = _timefmt
-        elif value is None:
-            self.__timefmt = value
+        return logging.getLogger(self.prog)
 
     def stdout(self, context):
         '''
@@ -236,147 +186,158 @@ class commands:
         sys.stderr.write(f"{context}\n")
         sys.stderr.flush()
 
-    def log(self, context, debug_level: level = level.DEBUG):
-        '''
-        Output logs to the specified stream.
-
-        Each log should define the level or use the default. Only when
-        the log level is less than or equal to the specified level, the
-        log will be output to the specified stream.
-        '''
-        assert isinstance(debug_level, level)
-        if debug_level > self.debug_level:
+    def __add_optional_version(self, argp: argp, root: add_command):
+        if not isinstance(root, add_command):
             return
 
-        std: TextIO = sys.stderr
-        if isinstance(self.args, Namespace) and\
-           hasattr(self.args, "_log_output_stream_"):
-            std = self.args._log_output_stream_
-
-        items = []
-        if TIMESTAMP in self.log_detail and isinstance(self.timefmt, str):
-            items.append(datetime.now().strftime(self.timefmt))
-        if PID in self.log_detail:
-            items.append(str(os.getpid()))
-        # if THREADID in self.log_detail:
-        #     ident = current_thread().ident
-        #     if isinstance(ident, int):
-        #         items.append(str(ident))
-        if THREAD in self.log_detail:
-            items.append(current_thread().getName())
-        if LEVEL in self.log_detail:
-            items.append(debug_level.name)
-        if FILENAME in self.log_detail or FUNCTION in self.log_detail:
-            f_back = sys._getframe().f_back
-            if f_back:
-                if FILENAME in self.log_detail:
-                    filename = f_back.f_code.co_filename
-                    lineno = f_back.f_lineno
-                    items.append(f"{os.path.basename(filename)}:{lineno}")
-                if FUNCTION in self.log_detail:
-                    items.append(f_back.f_code.co_name)
-        items.append(f"{context}\n")
-
-        std.write(" ".join(items))
-        std.flush()
-
-    def __add_optional_version(self, argp: argp, root: add_command):
         if not isinstance(self.version, str):
             return
 
-        if not isinstance(root, add_command):
+        version = self.version.strip()
+        if not version:
             return
 
-        options = argp.filter_optional_name("-v", "--version")
-        if len(options) <= 0:
-            return
-
-        argp.add_argument(*options,
+        argp.add_argument("--version",
                           action="version",
-                          version=f"%(prog)s {self.version}")
+                          version=f"%(prog)s {version}")
 
-    def __add_optional_debug(self, argp: argp, root: add_command):
+    def __add_inner_parser_tail(self, argp: argp, root: add_command):
         if not isinstance(root, add_command):
             return
 
-        options = argp.filter_optional_name("-d", "--debug")
-        if len(options) <= 0:
-            return
+        def filter_optional_name(*name: str) -> Optional[str]:
+            options = argp.filter_optional_name(*name)
+            if len(options) > 0:
+                for i in name:
+                    if i in options:
+                        return i
+            return None
 
-        def get_debug_level_name():
-            return [key.lower() for key in level.__members__.keys()]
+        def add_optional_level():
 
-        group = argp.argument_group("logger optional arguments")
-        group.add_argument(*options,
-                           type=str,
-                           nargs="?",
-                           const=level.DEBUG.name.lower(),
-                           default=level.INFO.name.lower(),
-                           choices=get_debug_level_name(),
-                           dest="_debug_level_str_",
-                           help="Specify log level, default\n"
-                           f"{level.INFO.name.lower()}.\n"
-                           "If this option has no value, it means\n"
-                           f"{level.DEBUG.name.lower()}.\n")
+            def get_all_level_name() -> List[str]:
+                return ["fatal", "error", "warn", "info", "debug"]
 
-    def __add_optional_output(self, argp: argp, root: add_command):
-        if not isinstance(root, add_command):
-            return
+            group = argp.argument_group("logger optional arguments")
+            group_level = group.add_mutually_exclusive_group()
 
-        options = argp.filter_optional_name("-o", "--output")
-        if len(options) <= 0:
-            return
+            option_level = filter_optional_name("--level", "--log-level")
+            if isinstance(option_level, str):
+                group_level.add_argument(
+                    option_level,
+                    type=str,
+                    nargs="?",
+                    const="info",
+                    default="info",
+                    choices=get_all_level_name(),
+                    dest="_log_level_str_",
+                    help="Logger output level, default info.")
 
-        group = argp.argument_group("logger optional arguments")
-        group.add_argument(*options,
-                           type=FileType("a", encoding="UTF-8"),
-                           nargs="?",
-                           const=sys.stdout,
-                           default=sys.stderr,
-                           metavar="log file",
-                           dest="_log_output_stream_",
-                           help="Specify log output stream, default stderr.\n"
-                           "If a file path is specified, output the log to\n"
-                           "the specified file, otherwise redirect to stdout.")
+            for level in get_all_level_name():
+                options = []
+                if isinstance(filter_optional_name(f"-{level[0]}"), str):
+                    options.append(f"-{level[0]}")
+                if isinstance(filter_optional_name(f"--{level}"), str):
+                    options.append(f"--{level}")
+                elif isinstance(filter_optional_name(f"--{level}-level"), str):
+                    options.append(f"--{level}-level")
 
-    def __add_optional_detail(self, argp: argp, root: add_command):
-        if not isinstance(root, add_command):
-            return
+                if not options:
+                    continue
+                group_level.add_argument(*options,
+                                         action="store_const",
+                                         const=level,
+                                         dest="_log_level_str_",
+                                         help=f"Logger level set to {level}.")
 
-        options = argp.filter_optional_name("--detail", "--log-detail")
-        if len(options) <= 0:
-            return
+        def add_optional_stream():
+            option = filter_optional_name("--file", "--log-file")
+            if not isinstance(option, str):
+                return
 
-        if "--detail" in options:
-            options -= set(["--log-detail"])
+            group = argp.argument_group("logger optional arguments")
+            group.add_argument(option,
+                               type=str,
+                               nargs=1,
+                               default=[],
+                               metavar="LOG",
+                               action="extend",
+                               dest="_log_files_",
+                               help="Logger output to file.")
 
-        def get_log_detail_name():
-            values = set(detail.__members__.values()) - set([detail.NONE])
-            return [v.name.lower() for v in values]
+        def add_optional_format():
+            option = filter_optional_name("--format", "--log-format")
+            if not isinstance(option, str):
+                return
 
-        group = argp.argument_group("logger optional arguments")
-        # group.add_argument(*options,
-        #                    type=str,
-        #                    nargs="+",
-        #                    default=[],
-        #                    choices=get_log_detail_name(),
-        #                    dest="_log_detail_",
-        #                    help="Specify log output details, default\n"
-        #                    f"{detail.NONE.name.lower()}.\n")
-        group.add_argument(*options,
-                           action="store_true",
-                           dest="_log_detail_",
-                           help="Logger output details, such as timestamp, \n"
-                           "PID, thread, filename and line number.")
+            DEFAULT_FMT = "%(asctime)s %(process)d %(threadName)s"\
+                " %(levelname)s %(funcName)s %(filename)s:%(lineno)s"\
+                " %(message)s"
+
+            group = argp.argument_group("logger optional arguments")
+            group.add_argument(option,
+                               type=str,
+                               nargs="?",
+                               const=DEFAULT_FMT,
+                               default=None,
+                               metavar="STRING",
+                               dest="_log_format_",
+                               help="Logger output format.")
+
+        def add_optional_console():
+            group = argp.argument_group("logger optional arguments")
+            group_std = group.add_mutually_exclusive_group()
+
+            option = filter_optional_name("--stdout", "--log-stdout")
+            if isinstance(option, str):
+                group_std.add_argument(option,
+                                       const=sys.stdout,
+                                       action="store_const",
+                                       dest="_log_console_",
+                                       help="Logger output to stdout.")
+
+            option = filter_optional_name("--stderr", "--log-stderr")
+            if isinstance(option, str):
+                group_std.add_argument(option,
+                                       const=sys.stderr,
+                                       action="store_const",
+                                       dest="_log_console_",
+                                       help="Logger output to stderr.")
+
+        add_optional_level()
+        add_optional_stream()
+        add_optional_format()
+        add_optional_console()
+
+    def __parse_logger(self, args: Namespace):
+        # save debug level to local variable
+        if hasattr(args, "_log_level_str_") and\
+           isinstance(args._log_level_str_, str):
+            level_name = args._log_level_str_.upper()
+            self.logger.setLevel(logging._nameToLevel[level_name])
+
+        formatter = logging.Formatter(
+            fmt=args._log_format_ if hasattr(args, "_log_format_")
+            and isinstance(args._log_format_, str) else None,
+            datefmt=None)
+
+        def addHandler(handler: logging.Handler):
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+
+        if hasattr(args, "_log_console_") and args._log_console_ is not None:
+            addHandler(logging.StreamHandler(stream=args._log_console_))
+
+        for filename in args._log_files_:
+            assert isinstance(filename, str)
+            addHandler(logging.FileHandler(filename))
 
     def __add_parser(self, argp: argp, root: add_command, **kwargs):
         if not isinstance(root, add_command):
             return
 
         root.func(argp)
-        self.__add_optional_debug(argp, root)
-        self.__add_optional_output(argp, root)
-        self.__add_optional_detail(argp, root)
+        self.__add_inner_parser_tail(argp, root)
 
         subs = root.subs
         if not isinstance(subs, tuple) or len(subs) <= 0:
@@ -404,27 +365,13 @@ class commands:
         assert isinstance(root, add_command)
 
         _arg = argp(**kwargs)
+        self.__prog = _arg.prog
         self.__add_optional_version(_arg, root)
         self.__add_parser(_arg, root, **kwargs)
 
         args = _arg.parse_args(argv)
         assert isinstance(args, Namespace)
-
-        # save debug level to local variable
-        if hasattr(args, "_debug_level_str_") and\
-           isinstance(args._debug_level_str_, str):
-            self.debug_level = args._debug_level_str_
-
-        # save log detail to local variable
-        # if hasattr(args, "_log_detail_") and\
-        #    isinstance(args._log_detail_, list):
-        #     for v in args._log_detail_:
-        #         assert isinstance(v, str)
-        #         self.log_detail |= detail[v.upper()]
-        if hasattr(args, "_log_detail_") and\
-           isinstance(args._log_detail_, bool) and args._log_detail_ is True:
-            self.log_detail = detail.ALL
-
+        self.__parse_logger(args)
         self.args = args
         return self.args
 
@@ -470,24 +417,22 @@ class commands:
             root = self.root
 
         if not isinstance(root, add_command):
-            self.log("cannot find root", level.DEBUG)
+            self.logger.debug("cannot find root")
             return ENOENT
 
         args = self.parse(root, argv, **kwargs)
-        self.log(f"{args}", level.DEBUG)
+        self.logger.debug(f"{args}")
 
         try:
             version = self.version
             if isinstance(version, str):
                 # Output version for the debug level. Internal log
                 # items are debug level only, except for errors.
-                self.log(f"version: {version}", level.DEBUG)
+                self.logger.debug(f"version: {version}")
 
             return self.__run(args, root)
         except KeyboardInterrupt:
             return EINTR
         except BaseException as e:
-            self.log(f"{e}", level.FATAL)
-            if self.debug_level >= level.DEBUG:
-                raise e
+            self.logger.fatal(f"{e}", stack_info=True)
             return 10000
