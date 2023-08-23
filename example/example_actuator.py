@@ -4,8 +4,10 @@
 from typing import List
 from typing import Optional
 
+from xarg import add_command
 from xarg import argp
-from xarg import commands, add_command, run_command
+from xarg import commands
+from xarg import run_command
 
 
 @add_command('key', help="item key")

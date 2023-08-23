@@ -3,10 +3,10 @@
 
 __version__ = "0.11.alpha.1"
 
-from .decorator import Namespace
-from .decorator import commands
-from .decorator import add_command
-from .decorator import run_command
+from .actuator import Namespace
+from .actuator import commands
+from .actuator import add_command
+from .actuator import run_command
 
 from .logger import FATAL
 from .logger import ERROR
