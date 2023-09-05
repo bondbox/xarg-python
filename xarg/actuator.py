@@ -433,6 +433,6 @@ class commands:
             return self.__run(args, root)
         except KeyboardInterrupt:
             return EINTR
-        except BaseException as e:
-            self.logger.fatal(f"{e}", stack_info=True)
+        except BaseException:
+            self.logger.exception("Something went wrong:")
             return 10000
