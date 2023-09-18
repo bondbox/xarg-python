@@ -9,3 +9,5 @@ from .actuator import add_command
 from .actuator import run_command
 
 from .parser import argp
+
+from .scanner import scanner
