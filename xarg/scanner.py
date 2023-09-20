@@ -10,9 +10,11 @@ from queue import Queue
 import stat
 from threading import Thread
 from threading import current_thread
+from typing import Callable
 from typing import Dict
 from typing import Generator
 from typing import List
+from typing import Optional
 from typing import Sequence
 from typing import Set
 
@@ -185,9 +187,11 @@ class scanner:
              paths: Sequence[str],
              exclude: Sequence[str] = [],
              linkdir: bool = True,
-             threads: int = THDNUM_DEFAULT):
+             threads: int = THDNUM_DEFAULT,
+             handler: Optional[Callable[[object], bool]] = None):
         assert isinstance(paths, Sequence)
         assert isinstance(exclude, Sequence)
+        assert isinstance(linkdir, bool)
         assert isinstance(threads, int)
 
         cmds = commands()
@@ -210,6 +214,7 @@ class scanner:
 
             def __init__(self):
                 self.exit = False
+                self.handler = handler
                 self.scanner = scanner()
                 self.filter: Set[str] = filter()
                 self.q_path: Queue[str] = Queue()
@@ -243,8 +248,15 @@ class scanner:
                             spath = os.path.join(path, sub)
                             scan_stat.q_path.put(spath)
 
+                result = True
                 object = scanner.object(path)
-                scan_stat.q_task.put(object)
+
+                if isinstance(scan_stat.handler, Callable):
+                    result = scan_stat.handler(object)
+                    assert isinstance(result, bool)
+
+                if result is True:
+                    scan_stat.q_task.put(object)
                 scan_stat.q_path.task_done()
             cmds.logger.debug(f"task thread[{name}] exit")
 
