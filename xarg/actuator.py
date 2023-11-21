@@ -11,6 +11,8 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 
+from argcomplete import autocomplete
+
 from .parser import argp
 
 
@@ -369,6 +371,7 @@ class commands:
         self.__add_optional_version(_arg, root)
         self.__add_parser(_arg, root, **kwargs)
 
+        autocomplete(_arg)
         args = _arg.parse_args(argv)
         assert isinstance(args, Namespace)
         self.__parse_logger(args)
