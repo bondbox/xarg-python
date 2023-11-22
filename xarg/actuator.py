@@ -427,6 +427,7 @@ class commands:
             self.logger.debug("cannot find root")
             return ENOENT
 
+        kwargs.pop("prog", None)  # Please do not specify prog
         args = self.parse(root, argv, **kwargs)
         self.logger.debug(f"{args}")
 

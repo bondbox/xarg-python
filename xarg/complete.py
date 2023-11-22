@@ -1,13 +1,19 @@
 #!/usr/bin/python3
 # coding:utf-8
 
+from base64 import b16decode
+from base64 import b16encode
 from configparser import ConfigParser
 import os
+import shutil
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Set
+from typing import Tuple
+
+from tabulate import tabulate
 
 from xarg import add_command
 from xarg import argp
@@ -42,8 +48,21 @@ done
 
 def update_bash(cmd: str) -> int:
     bash_completion_hook = os.path.expanduser(USER_BASH_COMPLETION_DIR)
-    path = os.path.join(bash_completion_hook, f"{__prog_complete__}-{cmd}")
+    name = b16encode(cmd.encode()).decode()
+    path = os.path.join(bash_completion_hook, f"{__prog_complete__}-{name}")
     return os.system(f"register-python-argcomplete {cmd} > {path}")
+
+
+def list_bash() -> Set[str]:
+    cmds: Set[str] = set()
+    bash_completion_hook = os.path.expanduser(USER_BASH_COMPLETION_DIR)
+    for item in os.listdir(bash_completion_hook):
+        if not os.path.isfile(os.path.join(bash_completion_hook, item)):
+            continue
+        keys = item.split("-", 1)
+        if len(keys) == 2 and keys[0] == __prog_complete__:
+            cmds.add(b16decode(keys[1]).decode())
+    return cmds
 
 
 class package_info:
@@ -131,12 +150,28 @@ def run_cmd_update(cmds: commands) -> int:
     return 0
 
 
+@add_command("list", help="List all completion.")
+def add_cmd_list(_arg: argp):
+    pass
+
+
+@run_command(add_cmd_list)
+def run_cmd_list(cmds: commands) -> int:
+    table: List[Tuple[str, str, str]] = []
+    for cmd in list_bash():
+        which = shutil.which(cmd)
+        table.append(
+            ("bash", cmd, which if isinstance(which, str) else "None"))
+    cmds.stdout(tabulate(table, headers=["shell", "command", "which"]))
+    return 0
+
+
 @add_command(__prog_complete__)
 def add_cmd(_arg: argp):
     pass
 
 
-@run_command(add_cmd, add_cmd_init, add_cmd_update)
+@run_command(add_cmd, add_cmd_init, add_cmd_update, add_cmd_list)
 def run_cmd(cmds: commands) -> int:
     return 0
 
@@ -147,6 +182,5 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     return cmds.run(
         root=add_cmd,
         argv=argv,
-        prog=__prog_complete__,
         description="Simple command-line tool based on argparse.",
         epilog=f"For more, please visit {URL_PROG}.")
