@@ -55,6 +55,15 @@ def update_bash(cmd: str) -> int:
     return os.system(f"register-python-argcomplete {cmd} > {path}")
 
 
+def remove_bash(cmd: str) -> bool:
+    bash_completion_hook = os.path.expanduser(USER_BASH_COMPLETION_DIR)
+    name = b16encode(cmd.encode()).decode()
+    path = os.path.join(bash_completion_hook, f"{__prog_complete__}-{name}")
+    if os.path.isfile(path):
+        os.remove(path)
+    return not os.path.exists(path)
+
+
 def list_bash() -> Set[str]:
     cmds: Set[str] = set()
     bash_completion_hook = os.path.expanduser(USER_BASH_COMPLETION_DIR)
@@ -146,31 +155,6 @@ def run_cmd_init(cmds: commands) -> int:
     return 0
 
 
-@add_command("update", help="Update completion config.")
-def add_cmd_update(_arg: argp):
-    group_script = _arg.argument_group("Specify update command or script")
-    group_script.add_argument("--script", type=str, nargs=1, metavar="PATH",
-                              dest="_commands_", action="extend",
-                              help="Specify script path.")
-    group_script.add_argument(type=str, nargs="*", metavar="command",
-                              dest="_commands_", action="extend",
-                              help="Specify command.")
-
-
-@run_command(add_cmd_update)
-def run_cmd_update(cmds: commands) -> int:
-    if len(cmds.args._commands_) == 0:
-        cmds.args._commands_ = collections().cmds
-    for cmd in cmds.args._commands_:
-        if shutil.which(cmd) is None:
-            cmds.stderr(f"Non existent command or script: {cmd}")
-            continue
-        cmds.stdout(f"Update command or script: {cmd}")
-        update_bash(cmd)
-    cmds.stdout("Please log in your shell again.")
-    return 0
-
-
 @add_command("list", help="List all completion.")
 def add_cmd_list(_arg: argp):
     pass
@@ -187,12 +171,70 @@ def run_cmd_list(cmds: commands) -> int:
     return 0
 
 
+@add_command("update", help="Update completion config.")
+def add_cmd_update(_arg: argp):
+    group_script = _arg.argument_group("Specify update command or script")
+    group_script.add_argument("--script", type=str, nargs=1, metavar="PATH",
+                              dest="_commands_", action="extend",
+                              help="Specify script path.")
+    group_script.add_argument(type=str, nargs="*", metavar="command",
+                              dest="_commands_", action="extend",
+                              help="Specify command.")
+
+
+@run_command(add_cmd_update)
+def run_cmd_update(cmds: commands) -> int:
+    if len(cmds.args._commands_) == 0:
+        cmds.args._commands_ = collections().cmds
+    for cmd in set(cmds.args._commands_):
+        if shutil.which(cmd) is None:
+            cmds.stderr(f"Non existent command or script: {cmd}")
+            continue
+        cmds.stdout(f"Update command or script: {cmd}")
+        update_bash(cmd)
+    cmds.stdout("Please log in your shell again.")
+    return 0
+
+
+@add_command("remove", help="Remove completion config.")
+def add_cmd_remove(_arg: argp):
+    allowed = list(list_bash())
+    group_script = _arg.argument_group("Specify remove command or script")
+    mgroup_script = group_script.add_mutually_exclusive_group()
+    mgroup_script.add_argument("--auto-clean", dest="_clean_",
+                               action="store_true",
+                               help="Clean invalid commands or scripts.")
+    mgroup_script.add_argument("--all", const=allowed,
+                               dest="_commands_", action="store_const",
+                               help="Remove all commands or scripts.")
+    group_script.add_argument(type=str, nargs="*", metavar="command",
+                              dest="_commands_", action="extend",
+                              help="Specify command or script.",
+                              choices=allowed + [[]])
+
+
+@run_command(add_cmd_remove)
+def run_cmd_remove(cmds: commands) -> int:
+    if cmds.args._clean_:
+        assert isinstance(cmds.args._commands_, list)
+        for cmd in list_bash():
+            if cmd in cmds.args._commands_:
+                continue
+            if shutil.which(cmd) is None:
+                cmds.args._commands_.append(cmd)
+    for cmd in set(cmds.args._commands_):
+        cmds.stdout(f"Remove command or script: {cmd}")
+        assert remove_bash(cmd)
+    return 0
+
+
 @add_command(__prog_complete__)
 def add_cmd(_arg: argp):
     pass
 
 
-@run_command(add_cmd, add_cmd_init, add_cmd_update, add_cmd_list)
+@run_command(add_cmd, add_cmd_init, add_cmd_list,
+             add_cmd_update, add_cmd_remove)
 def run_cmd(cmds: commands) -> int:
     return 0
 
