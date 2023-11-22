@@ -13,3 +13,5 @@ xarg todo list
 * [ ] support for argument groups
 * [ ] support for mutually exclusive group
 * [ ] support for partial parsing
+* [x] tab completion
+* [ ] autotest function
