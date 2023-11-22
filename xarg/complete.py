@@ -120,7 +120,7 @@ def add_cmd_init(_arg: argp):
 
 @run_command(add_cmd_init)
 def run_cmd_init(cmds: commands) -> int:
-    retcode = os.system("activate-global-python-argcomplete -y")
+    retcode = os.system("activate-global-python-argcomplete --user -y")
     if retcode != 0:
         return retcode
     init_bash()
@@ -182,5 +182,5 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     return cmds.run(
         root=add_cmd,
         argv=argv,
-        description="Simple command-line tool based on argparse.",
+        description="Tab completion management.",
         epilog=f"For more, please visit {URL_PROG}.")
