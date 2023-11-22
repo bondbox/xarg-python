@@ -253,7 +253,7 @@ class commands:
                                          help=f"Logger level set to {level}.")
 
         def add_optional_stream():
-            option = filter_optional_name("--file", "--log-file")
+            option = filter_optional_name("--log", "--log-file")
             if not isinstance(option, str):
                 return
 
@@ -262,7 +262,7 @@ class commands:
                                type=str,
                                nargs=1,
                                default=[],
-                               metavar="LOG",
+                               metavar="FILE",
                                action="extend",
                                dest="_log_files_",
                                help="Logger output to file.")
