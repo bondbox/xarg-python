@@ -14,6 +14,7 @@ from typing import Tuple
 from argcomplete import autocomplete
 
 from .parser import argp
+from .util import singleton
 
 
 class add_command:
@@ -77,17 +78,6 @@ class run_command:
     def __call__(self, run_func):
         self.func = run_func
         return self
-
-
-def singleton(cls):
-    instance = {}
-
-    def _singleton_wrapper(*args, **kwargs):
-        if cls not in instance:
-            instance[cls] = cls(*args, **kwargs)
-        return instance[cls]
-
-    return _singleton_wrapper
 
 
 @singleton

@@ -7,6 +7,7 @@ from configparser import ConfigParser
 import os
 import shutil
 from typing import Dict
+from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Sequence
@@ -24,6 +25,7 @@ from .util import URL_PROG
 from .util import __package_name__
 from .util import __prog_complete__
 from .util import __version__
+from .util import singleton
 
 USER_BASH_COMPLETION_CFG = "~/.bash_completion"
 USER_BASH_COMPLETION_DIR = "~/.bash_completion.d"
@@ -113,6 +115,23 @@ class package_info:
             return set()
 
 
+@singleton
+class collections:
+
+    def __init__(self):
+        info = package_info(__package_name__)
+        self.__pkgs: Set[str] = {i for i in info.required_by}
+        self.__cmds: Set[str] = {__prog_complete__}
+        for pkg in self.__pkgs:
+            pkgi = package_info(pkg)
+            for cmd in pkgi.console_scripts:
+                self.__cmds.add(cmd)
+
+    @property
+    def cmds(self) -> Iterable[str]:
+        return iter(self.__cmds)
+
+
 @add_command("init", help="Enable completion.")
 def add_cmd_init(_arg: argp):
     pass
@@ -129,23 +148,25 @@ def run_cmd_init(cmds: commands) -> int:
 
 @add_command("update", help="Update completion config.")
 def add_cmd_update(_arg: argp):
-    pass
+    group_script = _arg.argument_group("Specify update command or script")
+    group_script.add_argument("--script", type=str, nargs=1, metavar="PATH",
+                              dest="_commands_", action="extend",
+                              help="Specify script path.")
+    group_script.add_argument(type=str, nargs="*", metavar="command",
+                              dest="_commands_", action="extend",
+                              help="Specify command.")
 
 
 @run_command(add_cmd_update)
 def run_cmd_update(cmds: commands) -> int:
-
-    def update_complete(name: str):
-        cmds.stdout(f"package: {name}")
-        info = package_info(name)
-        for cmd in info.console_scripts:
-            cmds.stdout(f" └ command: {cmd}")
-            update_bash(cmd)
-
-    pkgi = package_info(__package_name__)
-    for required in pkgi.required_by:
-        update_complete(required)
-    update_bash(__prog_complete__)
+    if len(cmds.args._commands_) == 0:
+        cmds.args._commands_ = collections().cmds
+    for cmd in cmds.args._commands_:
+        if shutil.which(cmd) is None:
+            cmds.stderr(f"Non existent command or script: {cmd}")
+            continue
+        cmds.stdout(f"Update command or script: {cmd}")
+        update_bash(cmd)
     cmds.stdout("Please log in your shell again.")
     return 0
 
