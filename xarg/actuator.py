@@ -31,6 +31,10 @@ class add_command:
     '''
 
     def __init__(self, name: str, **kwargs):
+        if "help" in kwargs and "description" not in kwargs:
+            kwargs["description"] = kwargs["help"]
+        if "description" in kwargs and "help" not in kwargs:
+            kwargs["help"] = kwargs["description"]
         self.cmds: commands = commands()
         self.name: str = name
         self.options = kwargs

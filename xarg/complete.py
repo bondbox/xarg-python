@@ -94,7 +94,7 @@ class package_info:
             return set()
 
 
-@add_command("init")
+@add_command("init", help="Enable completion.")
 def add_cmd_init(_arg: argp):
     pass
 
@@ -108,7 +108,7 @@ def run_cmd_init(cmds: commands) -> int:
     return 0
 
 
-@add_command("update")
+@add_command("update", help="Update completion config.")
 def add_cmd_update(_arg: argp):
     pass
 
