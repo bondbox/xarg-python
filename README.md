@@ -23,10 +23,10 @@ Requires
 Build
 -----
 
-Fast build via [xpip](https://github.com/bondbox/xpip-python):
+Fast build and install via [xpip](https://github.com/bondbox/xpip-python):
 
 ```shell
-xpip-build setup --all && ls -lh dist/*
+xpip-build setup --clean --all --install
 ```
 
 or build via shell:

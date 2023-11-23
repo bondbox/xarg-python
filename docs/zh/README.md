@@ -18,10 +18,10 @@ xarg
 构建
 ----
 
-通过 [xpip](https://github.com/bondbox/xpip-python) 工具快速构建：
+通过 [xpip](https://github.com/bondbox/xpip-python) 工具可快速构建和安装：
 
 ```shell
-xpip-build setup --all && ls -lh dist/*
+xpip-build setup --clean --all --install
 ```
 
 或者通过 `shell` 命令构建:
