@@ -31,7 +31,7 @@ USER_BASH_COMPLETION_CFG = "~/.bash_completion"
 USER_BASH_COMPLETION_DIR = "~/.bash_completion.d"
 
 
-def init_bash():
+def enable_bash():
     bash_completion_code = """
 for bcfile in ~/.bash_completion.d/* ; do
   source ${bcfile}
@@ -141,17 +141,17 @@ class collections:
         return iter(self.__cmds)
 
 
-@add_command("init", help="Enable completion.")
-def add_cmd_init(_arg: argp):
+@add_command("enable", help="Enable completion.")
+def add_cmd_enable(_arg: argp):
     pass
 
 
-@run_command(add_cmd_init)
-def run_cmd_init(cmds: commands) -> int:
+@run_command(add_cmd_enable)
+def run_cmd_enable(cmds: commands) -> int:
     retcode = os.system("activate-global-python-argcomplete --user -y")
     if retcode != 0:
         return retcode
-    init_bash()
+    enable_bash()
     return 0
 
 
@@ -233,8 +233,8 @@ def add_cmd(_arg: argp):
     pass
 
 
-@run_command(add_cmd, add_cmd_init, add_cmd_list,
-             add_cmd_update, add_cmd_remove)
+@run_command(add_cmd, add_cmd_enable, add_cmd_update, add_cmd_remove,
+             add_cmd_list)
 def run_cmd(cmds: commands) -> int:
     return 0
 

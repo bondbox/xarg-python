@@ -13,7 +13,7 @@ xargcomplete
 ------------
 
 ```shell
-xargcomplete init
+xargcomplete enable
 ```
 
 更新命令补全

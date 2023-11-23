@@ -13,7 +13,7 @@ Enable completion
 -----------------
 
 ```shell
-xargcomplete init
+xargcomplete enable
 ```
 
 Update completion for all xarg-based `Python` packages
