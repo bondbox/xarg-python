@@ -2,9 +2,13 @@
 # coding:utf-8
 
 from argparse import ArgumentParser
+from argparse import Namespace
 from argparse import _ArgumentGroup
 from argparse import _SubParsersAction
 from typing import Optional
+from typing import Sequence
+
+from argcomplete import autocomplete
 
 from .util import URL_PROG
 
@@ -20,7 +24,7 @@ class checker():
         '''
 
         def inner(self, name: str, **kwargs):
-            assert isinstance(name, str) and name[0] not in cls.prefix_chars,\
+            assert isinstance(name, str) and name[0] not in cls.prefix_chars, \
                 f"{name} is not a positional argument name"
             return fn(self, name, **kwargs)
 
@@ -38,7 +42,7 @@ class checker():
             # 3. only short form or long form or short form + long form
             # 模棱两可的数据（-1可以是一个负数的位置参数）
             for n in name:
-                assert isinstance(n, str) and n[0] in cls.prefix_chars,\
+                assert isinstance(n, str) and n[0] in cls.prefix_chars, \
                     f"{n} is not an optional argument name"
             return fn(self, *name, **kwargs)
 
@@ -109,7 +113,7 @@ class argp(ArgumentParser):
         '''
         Add positional argument.
         '''
-        assert "dest" not in kwargs,\
+        assert "dest" not in kwargs, \
             "dest supplied twice for positional argument"
         self.add_argument(name, **kwargs)
 
@@ -152,3 +156,8 @@ class argp(ArgumentParser):
         kwargs.setdefault("help", None)
         kwargs.setdefault("metavar", None)
         return ArgumentParser.add_subparsers(self, *args, **kwargs)
+
+    def parse_args(self, args: Optional[Sequence[str]] = None,
+                   **kwargs) -> Namespace:
+        autocomplete(self)
+        return super().parse_args(args=args, **kwargs)
