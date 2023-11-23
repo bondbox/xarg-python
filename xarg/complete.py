@@ -13,6 +13,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Set
 from typing import Tuple
+from typing import Union
 
 from tabulate import tabulate
 
@@ -155,22 +156,6 @@ def run_cmd_enable(cmds: commands) -> int:
     return 0
 
 
-@add_command("list", help="List all completion.")
-def add_cmd_list(_arg: argp):
-    pass
-
-
-@run_command(add_cmd_list)
-def run_cmd_list(cmds: commands) -> int:
-    table: List[Tuple[str, str, str]] = []
-    for cmd in list_bash():
-        which = shutil.which(cmd)
-        table.append(
-            ("bash", cmd, which if isinstance(which, str) else "None"))
-    cmds.stdout(tabulate(table, headers=["shell", "command", "which"]))
-    return 0
-
-
 @add_command("update", help="Update completion config.")
 def add_cmd_update(_arg: argp):
     group_script = _arg.argument_group("Specify update command or script")
@@ -225,6 +210,40 @@ def run_cmd_remove(cmds: commands) -> int:
     for cmd in set(cmds.args._commands_):
         cmds.stdout(f"Remove command or script: {cmd}")
         assert remove_bash(cmd)
+    return 0
+
+
+@add_command("list", help="List all completion.")
+def add_cmd_list(_arg: argp):
+    pass
+
+
+@run_command(add_cmd_list)
+def run_cmd_list(cmds: commands) -> int:
+    table: Dict[str, Dict[str, Union[None, str, Set[str]]]] = {}
+
+    def update_table(cmd: str, shell: str):
+        if cmd not in table:
+            table[cmd] = {"which": shutil.which(cmd), "shell": set()}
+        shell_set = table[cmd]["shell"]
+        assert isinstance(shell_set, set)
+        shell_set.add(shell)
+
+    def output_table() -> List[Tuple[str, str, str]]:
+        datas: List[Tuple[str, str, str]] = []
+        for k, v in table.items():
+            which = v["which"] if v["which"] is not None else "None"
+            shell = v["shell"]
+            assert isinstance(which, str)
+            assert isinstance(shell, set)
+            datas.append((k, which, ", ".join(shell)))
+        datas.sort(key=lambda line: line[0])
+        datas.insert(0, ("command", "which", "shell"))
+        return datas
+
+    for cmd in list_bash():
+        update_table(cmd, "bash")
+    cmds.stdout(tabulate(output_table(), headers="firstrow"))
     return 0
 
 
