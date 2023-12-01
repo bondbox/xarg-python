@@ -81,7 +81,7 @@ class package_info:
 
     def __init__(self, name: str):
         self.__pkg_infos: Dict[str, str] = {}
-        self.__pkg_files: List[str] = []
+        self.__pkg_files: set[str] = set()
         self.__have_file = False
         with os.popen(f"pip show --files {name}") as fd:
             for line in fd.readlines():
@@ -90,12 +90,14 @@ class package_info:
                     if title != "Files":
                         self.__pkg_infos[title] = value.strip()
                     else:
+                        self.__location = self.__pkg_infos["Location"]
                         self.__have_file = True
                 else:
-                    path = line.strip()
-                    self.__pkg_files.append(path)
-                    if "entry_points.txt" in path:
-                        self.__entry_points = path
+                    path = os.path.join(self.location, line.strip())
+                    abspath = os.path.abspath(path)
+                    self.__pkg_files.add(abspath)
+                    if "entry_points.txt" in abspath:
+                        self.__entry_points = abspath
 
     @property
     def name(self) -> str:
@@ -106,6 +108,10 @@ class package_info:
         return self.__pkg_infos["Version"]
 
     @property
+    def location(self) -> str:
+        return self.__location
+
+    @property
     def requires(self) -> Set[str]:
         return {i.strip() for i in self.__pkg_infos["Requires"].split(",")}
 
@@ -114,12 +120,14 @@ class package_info:
         return {i.strip() for i in self.__pkg_infos["Required-by"].split(",")}
 
     @property
+    def files(self) -> Set[str]:
+        return self.__pkg_files
+
+    @property
     def console_scripts(self) -> Set[str]:
         try:
-            path = os.path.join(
-                self.__pkg_infos["Location"], self.__entry_points)
             config = ConfigParser()
-            config.read(path)
+            config.read(self.__entry_points)
             return {i for i in config["console_scripts"]}
         except Exception:
             return set()
@@ -149,7 +157,11 @@ def add_cmd_enable(_arg: argp):
 
 @run_command(add_cmd_enable)
 def run_cmd_enable(cmds: commands) -> int:
-    retcode = os.system("activate-global-python-argcomplete --user -y")
+    # activate-global-python-argcomplete --user -y
+    which =shutil.which("activate-global-python-argcomplete")
+    command = f"{which} --user"
+    cmds.logger.info(command)
+    retcode = os.system(command)
     if retcode != 0:
         return retcode
     enable_bash()
