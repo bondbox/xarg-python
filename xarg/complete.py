@@ -157,9 +157,8 @@ def add_cmd_enable(_arg: argp):
 
 @run_command(add_cmd_enable)
 def run_cmd_enable(cmds: commands) -> int:
-    # activate-global-python-argcomplete --user -y
-    which =shutil.which("activate-global-python-argcomplete")
-    command = f"{which} --user"
+    which = shutil.which("activate-global-python-argcomplete")
+    command = f"{which} --user --yes"
     cmds.logger.info(command)
     retcode = os.system(command)
     if retcode != 0:
