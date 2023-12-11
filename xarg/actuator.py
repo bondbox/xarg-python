@@ -343,6 +343,7 @@ class commands:
                 continue
             for key in kwargs:
                 sub.options.setdefault(key, kwargs.get(key))
+            sub.options.setdefault("epilog", argp.epilog)
             _arg = _sub.add_parser(sub.name, **sub.options)
             self.__add_parser(_arg, sub)
 
