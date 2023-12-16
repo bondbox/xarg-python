@@ -68,6 +68,8 @@ def remove_bash(cmd: str) -> bool:
 def list_bash() -> Set[str]:
     cmds: Set[str] = set()
     bash_completion_hook = os.path.expanduser(USER_BASH_COMPLETION_DIR)
+    if not os.path.exists(bash_completion_hook):
+        os.makedirs(bash_completion_hook)
     for item in os.listdir(bash_completion_hook):
         if not os.path.isfile(os.path.join(bash_completion_hook, item)):
             continue
