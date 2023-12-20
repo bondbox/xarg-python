@@ -2,6 +2,7 @@
 # coding:utf-8
 
 from .util import __version__
+from .util import chdir
 
 from .actuator import Namespace
 from .actuator import commands
