@@ -17,11 +17,10 @@ from typing import Union
 
 from tabulate import tabulate
 
-from xarg import add_command
-from xarg import argp
-from xarg import commands
-from xarg import run_command
-
+from .actuator import add_command
+from .actuator import commands
+from .actuator import run_command
+from .parser import argp
 from .util import URL_PROG
 from .util import __package_name__
 from .util import __prog_complete__
@@ -195,7 +194,8 @@ def run_cmd_update(cmds: commands) -> int:
             continue
         cmds.stdout(f"Update command or script: {cmd}")
         update_bash(cmd)
-    cmds.stdout("Please log in your shell again.")
+    cmds.stdout("Please restart your shell or source the file to activate it.")
+    cmds.stdout(f"Bash: source {os.path.expanduser(USER_BASH_COMPLETION_CFG)}")
     return 0
 
 
