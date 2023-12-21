@@ -33,20 +33,25 @@ USER_BASH_COMPLETION_DIR = "~/.bash_completion.d"
 
 
 def enable_bash():
-    bash_completion_code = """
+
+    def update_code():
+        bash_completion_path = os.path.expanduser(USER_BASH_COMPLETION_CFG)
+        bash_completion_hook = os.path.expanduser(USER_BASH_COMPLETION_DIR)
+        bash_completion_code = """
 for bcfile in ~/.bash_completion.d/* ; do
   source ${bcfile}
 done
 """
-    bash_completion_path = os.path.expanduser(USER_BASH_COMPLETION_CFG)
-    bash_completion_hook = os.path.expanduser(USER_BASH_COMPLETION_DIR)
-    if not os.path.exists(bash_completion_hook):
-        os.makedirs(bash_completion_hook)
-    with open(bash_completion_path, "r") as fh:
-        if bash_completion_code in fh.read():
-            return
-    with open(bash_completion_path, "a") as fh:
-        fh.write(f"\n{bash_completion_code}\n")
+        if not os.path.exists(bash_completion_hook):
+            os.makedirs(bash_completion_hook)
+        with open(bash_completion_path, "r") as fh:
+            if bash_completion_code in fh.read():
+                return
+        with open(bash_completion_path, "a") as fh:
+            fh.write(f"\n{bash_completion_code}\n")
+
+    update_code()
+    update_bash(__prog_complete__)
 
 
 def update_bash(cmd: str) -> int:
