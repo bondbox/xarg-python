@@ -6,6 +6,8 @@ from errno import EINTR
 from errno import ENOENT
 import logging
 import sys
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Sequence
@@ -34,15 +36,65 @@ class add_command:
             kwargs["description"] = kwargs["help"]
         if "description" in kwargs and "help" not in kwargs:
             kwargs["help"] = kwargs["description"]
-        self.cmds: commands = commands()
-        self.name: str = name
-        self.options = kwargs
-        self.bind: Optional[run_command] = None
-        self.subs: Optional[Tuple[add_command]] = None
+        self.__name: str = name
+        self.__prev: add_command = self
+        self.__cmds: commands = commands()
+        self.__options: Dict[str, Any] = kwargs
+        self.__bind: Optional[run_command] = None
+        self.__subs: Optional[Tuple[add_command, ...]] = None
 
     def __call__(self, cmd_func):
-        self.func = cmd_func
+        self.__func = cmd_func
         return self
+
+    @property
+    def func(self):
+        return self.__func
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def root(self):
+        root = self.__prev
+        while root.prev != root:
+            root = root.prev
+        return root
+
+    @property
+    def prev(self):
+        return self.__prev
+
+    @prev.setter
+    def prev(self, value: "add_command"):
+        assert isinstance(value, add_command)
+        self.__prev = value
+
+    @property
+    def cmds(self):
+        return self.__cmds
+
+    @property
+    def options(self):
+        return self.__options
+
+    @property
+    def bind(self):
+        return self.__bind
+
+    @bind.setter
+    def bind(self, value: "run_command"):
+        assert isinstance(value, run_command)
+        self.__bind = value
+
+    @property
+    def subs(self):
+        return self.__subs
+
+    @subs.setter
+    def subs(self, value: Tuple["add_command", ...]):
+        self.__subs = value
 
     @property
     def sub_dest(self):
@@ -66,16 +118,24 @@ class run_command:
     def __init__(self, cmd_bind: add_command, *subs: add_command):
         assert isinstance(cmd_bind, add_command)
         for sub in subs:
-            assert isinstance(sub, add_command)
+            sub.prev = cmd_bind
 
         cmd_bind.bind = self
         cmd_bind.subs = subs
-        self.bind: add_command = cmd_bind
-        commands().root = cmd_bind
+        commands().root = cmd_bind.root
+        self.__bind: add_command = cmd_bind
 
     def __call__(self, run_func):
-        self.func = run_func
+        self.__func = run_func
         return self
+
+    @property
+    def func(self):
+        return self.__func
+
+    @property
+    def bind(self) -> add_command:
+        return self.__bind
 
 
 @singleton
