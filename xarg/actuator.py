@@ -7,6 +7,7 @@ from errno import ENOENT
 import logging
 import sys
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -43,7 +44,7 @@ class add_command:
         self.__bind: Optional[run_command] = None
         self.__subs: Optional[Tuple[add_command, ...]] = None
 
-    def __call__(self, cmd_func):
+    def __call__(self, cmd_func: Callable[[argp], None]):
         self.__func = cmd_func
         return self
 
@@ -125,7 +126,7 @@ class run_command:
         commands().root = cmd_bind.root
         self.__bind: add_command = cmd_bind
 
-    def __call__(self, run_func):
+    def __call__(self, run_func: Callable[["commands"], int]):
         self.__func = run_func
         return self
 
