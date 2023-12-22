@@ -78,6 +78,7 @@ class argp(ArgumentParser):
     def __init__(self,
                  prog: Optional[str] = None,
                  usage: Optional[str] = None,
+                 prev_parser: Optional["argp"] = None,
                  description: Optional[str] = "Command-line based on xarg.",
                  epilog: Optional[str] = f"For more, please visit {URL_PROG}",
                  **kwargs):
@@ -86,6 +87,18 @@ class argp(ArgumentParser):
         kwargs.setdefault("description", description)
         kwargs.setdefault("epilog", epilog)
         ArgumentParser.__init__(self, **kwargs)
+        self.__prev_parser: argp = self if prev_parser is None else prev_parser
+
+    @property
+    def root_parser(self):
+        root = self.__prev_parser
+        while root.prev_parser != root:
+            root = root.prev_parser
+        return root
+
+    @property
+    def prev_parser(self):
+        return self.__prev_parser
 
     def argument_group(self,
                        title: Optional[str] = None,

@@ -389,25 +389,26 @@ class commands:
             assert isinstance(filename, str)
             addHandler(logging.FileHandler(filename))
 
-    def __add_parser(self, argp: argp, root: add_command, **kwargs):
-        if not isinstance(root, add_command):
+    def __add_parser(self, arg_root: argp, cmd_root: add_command, **kwargs):
+        if not isinstance(cmd_root, add_command):
             return
 
-        root.func(argp)
-        self.__add_inner_parser_tail(argp, root)
+        cmd_root.func(arg_root)
+        self.__add_inner_parser_tail(arg_root, cmd_root)
 
-        subs = root.subs
+        subs = cmd_root.subs
         if not isinstance(subs, tuple) or len(subs) <= 0:
             return
 
-        _sub = argp.add_subparsers(dest=root.sub_dest)
+        _sub = arg_root.add_subparsers(dest=cmd_root.sub_dest)
         for sub in subs:
             if not isinstance(sub, add_command):
                 continue
             for key in kwargs:
                 sub.options.setdefault(key, kwargs.get(key))
-            sub.options.setdefault("epilog", argp.epilog)
-            _arg = _sub.add_parser(sub.name, **sub.options)
+            sub.options.setdefault("epilog", arg_root.epilog)
+            sub.options.setdefault("prev_parser", arg_root)
+            _arg: argp = _sub.add_parser(sub.name, **sub.options)
             self.__add_parser(_arg, sub)
 
     def parse(self,
@@ -419,7 +420,6 @@ class commands:
         '''
         if root is None:
             root = self.root
-
         assert isinstance(root, add_command)
 
         _arg = argp(**kwargs)
