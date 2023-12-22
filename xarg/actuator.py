@@ -252,9 +252,11 @@ class commands:
         if not version:
             return
 
-        argp.add_argument("--version",
-                          action="version",
-                          version=f"%(prog)s {version}")
+        options = argp.filter_optional_name("-v", "--version")
+        if len(options) > 0:
+            argp.add_argument(*options,
+                              action="version",
+                              version=f"%(prog)s {version}")
 
     def __add_inner_parser_tail(self, argp: argp, root: add_command):
         if not isinstance(root, add_command):

@@ -7,6 +7,7 @@ from argparse import _ArgumentGroup
 from argparse import _SubParsersAction
 from typing import Optional
 from typing import Sequence
+from typing import Set
 
 from argcomplete import autocomplete
 
@@ -99,14 +100,14 @@ class argp(ArgumentParser):
         return self.add_argument_group(title, description, **kwargs)
 
     @checker.check_name_opt
-    def filter_optional_name(self, *name: str) -> set:
+    def filter_optional_name(self, *name: str) -> Sequence[str]:
         '''
         Filter defined optional argument name.
         '''
-        option_strings = set()
+        option_strings: Set[str] = set()
         for action in self._get_optional_actions():
             option_strings.update(action.option_strings)
-        return set(name) - option_strings
+        return [n for n in name if n not in option_strings]
 
     @checker.check_name_pos
     def add_pos(self, name: str, **kwargs) -> None:
