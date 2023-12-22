@@ -97,13 +97,9 @@ class argp(ArgumentParser):
     @property
     def root_parser(self):
         root = self.__prev_parser
-        while root.prev_parser != root:
-            root = root.prev_parser
+        while root.__prev_parser != root:
+            root = root.__prev_parser
         return root
-
-    @property
-    def prev_parser(self):
-        return self.__prev_parser
 
     def argument_group(self,
                        title: Optional[str] = None,
