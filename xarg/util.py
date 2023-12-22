@@ -41,8 +41,8 @@ class chdir:
         '''
         Add directory to stack.
         '''
-        assert isinstance(path, str)
-        assert os.path.isdir(path)
+        assert isinstance(path, str), f"type '{type(path)}' is not str"
+        assert os.path.isdir(path), f"path '{path}' is not directory"
         self.__stack.append(os.getcwd())
         os.chdir(path)
 
