@@ -3,6 +3,7 @@
 
 from .util import __version__
 from .util import chdir
+from .util import singleton
 
 from .actuator import Namespace
 from .actuator import commands

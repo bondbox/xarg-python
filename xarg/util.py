@@ -8,7 +8,7 @@ from typing import List
 __package_name__ = "xarg-python"
 __prog_name__ = "xarg"
 __prog_complete__ = "xargcomplete"
-__version__ = "1.1.alpha.2"
+__version__ = "1.1.alpha.3"
 
 URL_PROG = "https://github.com/bondbox/xarg-python"
 
