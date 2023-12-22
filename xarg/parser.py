@@ -4,10 +4,14 @@
 from argparse import ArgumentParser
 from argparse import Namespace
 from argparse import _ArgumentGroup
+from argparse import _HelpAction
 from argparse import _SubParsersAction
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Set
+from typing import Tuple
 
 from argcomplete import autocomplete
 
@@ -87,6 +91,7 @@ class argp(ArgumentParser):
         kwargs.setdefault("description", description)
         kwargs.setdefault("epilog", epilog)
         ArgumentParser.__init__(self, **kwargs)
+        self.__help_option: Dict[str, _HelpAction] = dict()
         self.__prev_parser: argp = self if prev_parser is None else prev_parser
 
     @property
@@ -172,6 +177,48 @@ class argp(ArgumentParser):
         return ArgumentParser.add_subparsers(self, *args, **kwargs)
 
     def parse_args(self, args: Optional[Sequence[str]] = None,
-                   **kwargs) -> Namespace:
-        autocomplete(self)
-        return super().parse_args(args=args, **kwargs)
+                   namespace: Optional[Namespace] = None) -> Namespace:
+        autocomplete(self)  # For tab completion
+        return super().parse_args(args=args, namespace=namespace)
+
+    def parse_known_args(self, args: Optional[Sequence[str]] = None,
+                         namespace: Optional[Namespace] = None
+                         ) -> Tuple[Namespace, List[str]]:
+        return super().parse_known_args(args=args, namespace=namespace)
+
+    def preparse_from_sys_argv(self) -> Namespace:
+        '''
+        Preparse some arguments from sys.argv for tab completion.
+
+        When arguments contain the help option, call parse_known_args()
+        will print help message and exit. The command line can parse
+        normally.
+
+        But parameters added after calling preparse_from_sys_argv() will
+        not show in the help message, because the exit occurred before
+        adding parameters.
+
+        So, disable the help action before calling parse_known_args().
+        The help option will be stored, and restored after the call ends.
+        '''
+
+        def __enable_help_action(_arg: argp):
+            while len(_arg.__help_option) > 0:
+                option, action = _arg.__help_option.popitem()
+                _arg._option_string_actions[option] = action
+            assert len(_arg.__help_option) == 0
+
+        def __disable_help_action(_arg: argp):
+            assert len(_arg.__help_option) == 0
+            for option, action in _arg._option_string_actions.items():
+                if isinstance(action, _HelpAction):
+                    _arg.__help_option[option] = action
+            for option in _arg.__help_option:
+                _arg._option_string_actions.pop(option)
+
+        try:
+            __disable_help_action(self)
+            namespace, _ = self.root_parser.parse_known_args()
+            return namespace
+        finally:
+            __enable_help_action(self)
