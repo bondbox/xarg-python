@@ -92,7 +92,10 @@ class argp(ArgumentParser):
         kwargs.setdefault("epilog", epilog)
         ArgumentParser.__init__(self, **kwargs)
         self.__help_option: Dict[str, _HelpAction] = dict()
-        self.__prev_parser: argp = self if prev_parser is None else prev_parser
+        self.__prev_parser: argp = prev_parser or self
+        self.__next_parser: List[argp] = list()
+        if prev_parser is not None:
+            prev_parser.__next_parser.append(self)
 
     @property
     def root_parser(self):
@@ -182,6 +185,20 @@ class argp(ArgumentParser):
                          ) -> Tuple[Namespace, List[str]]:
         return super().parse_known_args(args=args, namespace=namespace)
 
+    def __enable_help_action(self):
+        while len(self.__help_option) > 0:
+            option, action = self.__help_option.popitem()
+            self._option_string_actions[option] = action
+        assert len(self.__help_option) == 0
+
+    def __disable_help_action(self):
+        assert len(self.__help_option) == 0
+        for option, action in self._option_string_actions.items():
+            if isinstance(action, _HelpAction):
+                self.__help_option[option] = action
+        for option in self.__help_option:
+            self._option_string_actions.pop(option)
+
     def preparse_from_sys_argv(self) -> Namespace:
         '''
         Preparse some arguments from sys.argv for tab completion.
@@ -198,23 +215,19 @@ class argp(ArgumentParser):
         The help option will be stored, and restored after the call ends.
         '''
 
-        def __enable_help_action(_arg: argp):
-            while len(_arg.__help_option) > 0:
-                option, action = _arg.__help_option.popitem()
-                _arg._option_string_actions[option] = action
-            assert len(_arg.__help_option) == 0
+        def __dfs_enable_help_action(root: argp):
+            root.__enable_help_action()
+            for _sub in root.__next_parser:
+                __dfs_enable_help_action(_sub)
 
-        def __disable_help_action(_arg: argp):
-            assert len(_arg.__help_option) == 0
-            for option, action in _arg._option_string_actions.items():
-                if isinstance(action, _HelpAction):
-                    _arg.__help_option[option] = action
-            for option in _arg.__help_option:
-                _arg._option_string_actions.pop(option)
+        def __dfs_disable_help_action(root: argp):
+            root.__disable_help_action()
+            for _sub in root.__next_parser:
+                __dfs_disable_help_action(_sub)
 
         try:
-            __disable_help_action(self)
+            __dfs_disable_help_action(self.root_parser)
             namespace, _ = self.root_parser.parse_known_args()
             return namespace
         finally:
-            __enable_help_action(self)
+            __dfs_enable_help_action(self.root_parser)
