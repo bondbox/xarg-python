@@ -241,9 +241,7 @@ class commands:
         sys.stderr.write(f"{context}\n")
         sys.stderr.flush()
 
-    def __add_optional_version(self, argp: argp, root: add_command):
-        if not isinstance(root, add_command):
-            return
+    def __add_optional_version(self, argp: argp):
 
         if not isinstance(self.version, str):
             return
@@ -258,9 +256,7 @@ class commands:
                               action="version",
                               version=f"%(prog)s {version}")
 
-    def __add_inner_parser_tail(self, argp: argp, root: add_command):
-        if not isinstance(root, add_command):
-            return
+    def __add_inner_parser_tail(self, argp: argp):
 
         def filter_optional_name(*name: str) -> Optional[str]:
             options = argp.filter_optional_name(*name)
@@ -389,32 +385,32 @@ class commands:
             assert isinstance(filename, str)
             addHandler(logging.FileHandler(filename))
 
-    def __add_parser(self, arg_root: argp, cmd_root: add_command, **kwargs):
-        if not isinstance(cmd_root, add_command):
-            return
+    def __add_parser(self, _map: Dict[add_command, argp],
+                     arg_root: argp, cmd_root: add_command, **kwargs):
+        assert isinstance(cmd_root, add_command)
+        assert cmd_root not in _map
+        _map[cmd_root] = arg_root
 
-        cmd_root.func(arg_root)
-        self.__add_inner_parser_tail(arg_root, cmd_root)
-
-        subs = cmd_root.subs
-        if not isinstance(subs, tuple) or len(subs) <= 0:
+        if not cmd_root.subs or len(cmd_root.subs) <= 0:
             return
 
         _sub = arg_root.add_subparsers(dest=cmd_root.sub_dest)
-        for sub in subs:
-            if not isinstance(sub, add_command):
-                continue
-            for key in kwargs:
-                sub.options.setdefault(key, kwargs.get(key))
+        for sub in cmd_root.subs:
+            assert isinstance(sub, add_command)
+            for key, value in kwargs.items():
+                sub.options.setdefault(key, value)
             sub.options.setdefault("epilog", arg_root.epilog)
             sub.options.setdefault("prev_parser", arg_root)
             _arg: argp = _sub.add_parser(sub.name, **sub.options)
-            self.__add_parser(_arg, sub)
+            self.__add_parser(_map, _arg, sub)
 
-    def parse(self,
-              root: Optional[add_command] = None,
-              argv: Optional[Sequence[str]] = None,
-              **kwargs) -> Namespace:
+    def __add_option(self, _map: Dict[add_command, argp]):
+        for _cmd, _arg in _map.items():
+            _cmd.func(_arg)
+            self.__add_inner_parser_tail(_arg)
+
+    def parse(self, root: Optional[add_command] = None,
+              argv: Optional[Sequence[str]] = None, **kwargs) -> Namespace:
         '''
         Parse the command line.
         '''
@@ -422,10 +418,14 @@ class commands:
             root = self.root
         assert isinstance(root, add_command)
 
+        _map: Dict[add_command, argp] = dict()
         _arg = argp(**kwargs)
         self.__prog = _arg.prog
-        self.__add_optional_version(_arg, root)
-        self.__add_parser(_arg, root, **kwargs)
+        self.__add_optional_version(_arg)
+        # To support preparse_from_sys_argv(), all subparsers must be added
+        # first. Otherwise, an error will occur during the help action.
+        self.__add_parser(_map, _arg, root, **kwargs)
+        self.__add_option(_map)
 
         args = _arg.parse_args(args=argv)
         assert isinstance(args, Namespace)
