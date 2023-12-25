@@ -174,11 +174,15 @@ class commands:
 
     LOGGER_ARGUMENT_GROUP = "logger options"
 
-    def __init__(self):
+    def __init__(self, version: Optional[str] = None,
+                 enable_logger: bool = True):
+        assert isinstance(version, str) or version is None
+        assert isinstance(enable_logger, bool)
         self.__prog: str = "xarg"
         self.__root: Optional[add_command] = None
         self.__args: Namespace = Namespace()
-        self.__version: Optional[str] = None
+        self.__version: Optional[str] = version
+        self.__enable_logger: bool = enable_logger
 
     @property
     def prog(self) -> str:
@@ -193,8 +197,8 @@ class commands:
 
     @root.setter
     def root(self, value: add_command):
-        if isinstance(value, add_command):
-            self.__root = value
+        assert isinstance(value, add_command)
+        self.__root = value
 
     @property
     def args(self) -> Namespace:
@@ -206,8 +210,8 @@ class commands:
 
     @args.setter
     def args(self, value: Namespace):
-        if isinstance(value, Namespace):
-            self.__args = value
+        assert isinstance(value, Namespace)
+        self.__args = value
 
     @property
     def version(self) -> Optional[str]:
@@ -218,9 +222,18 @@ class commands:
 
     @version.setter
     def version(self, value: str):
-        if isinstance(value, str):
-            _version = value.strip()
-            self.__version = _version
+        assert isinstance(value, str)
+        _version = value.strip()
+        self.__version = _version
+
+    @property
+    def enable_logger(self) -> bool:
+        return self.__enable_logger
+
+    @enable_logger.setter
+    def enable_logger(self, value: bool):
+        assert isinstance(value, bool)
+        self.__enable_logger = value
 
     @property
     def logger(self) -> logging.Logger:
@@ -359,12 +372,16 @@ class commands:
                                        dest="_log_console_",
                                        help="Logger output to stderr.")
 
-        add_optional_level()
-        add_optional_stream()
-        add_optional_format()
-        add_optional_console()
+        if self.enable_logger:
+            add_optional_level()
+            add_optional_stream()
+            add_optional_format()
+            add_optional_console()
 
     def __parse_logger(self, args: Namespace):
+        if not self.enable_logger:
+            return
+
         # save debug level to local variable
         if hasattr(args, "_log_level_str_") and\
            isinstance(args._log_level_str_, str):
