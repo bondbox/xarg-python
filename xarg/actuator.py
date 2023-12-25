@@ -172,6 +172,8 @@ class commands:
             description="Simple command-line tool based on argparse.")\n
     '''
 
+    LOGGER_ARGUMENT_GROUP = "logger options"
+
     def __init__(self):
         self.__prog: str = "xarg"
         self.__root: Optional[add_command] = None
@@ -271,7 +273,7 @@ class commands:
             def get_all_level_name() -> List[str]:
                 return ["fatal", "error", "warn", "info", "debug"]
 
-            group = argp.argument_group("logger optional arguments")
+            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group_level = group.add_mutually_exclusive_group()
 
             option_level = filter_optional_name("--level", "--log-level")
@@ -308,7 +310,7 @@ class commands:
             if not isinstance(option, str):
                 return
 
-            group = argp.argument_group("logger optional arguments")
+            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group.add_argument(option,
                                type=str,
                                nargs=1,
@@ -327,7 +329,7 @@ class commands:
                 " %(levelname)s %(funcName)s %(filename)s:%(lineno)s"\
                 " %(message)s"
 
-            group = argp.argument_group("logger optional arguments")
+            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group.add_argument(option,
                                type=str,
                                nargs="?",
@@ -338,7 +340,7 @@ class commands:
                                help="Logger output format.")
 
         def add_optional_console():
-            group = argp.argument_group("logger optional arguments")
+            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group_std = group.add_mutually_exclusive_group()
 
             option = filter_optional_name("--stdout", "--log-stdout")
