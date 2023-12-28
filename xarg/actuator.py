@@ -399,9 +399,10 @@ class commands:
         if hasattr(args, "_log_console_") and args._log_console_ is not None:
             addHandler(logging.StreamHandler(stream=args._log_console_))
 
-        for filename in args._log_files_:
-            assert isinstance(filename, str)
-            addHandler(logging.FileHandler(filename))
+        if hasattr(args, "_log_files_"):
+            for filename in args._log_files_:
+                assert isinstance(filename, str)
+                addHandler(logging.FileHandler(filename))
 
     def __add_parser(self, _map: Dict[add_command, argp],
                      arg_root: argp, cmd_root: add_command, **kwargs):

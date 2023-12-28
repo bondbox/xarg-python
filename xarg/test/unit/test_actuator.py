@@ -7,8 +7,6 @@ import unittest
 
 import mock
 
-from xarg import DEBUG
-from xarg import WARN
 from xarg import add_command
 from xarg import argp
 from xarg import commands
@@ -23,9 +21,7 @@ def add_cmd_list(_arg: argp):
 
 @run_command(add_cmd_list)
 def run_cmd_list(cmds: commands) -> int:
-    commands().debug_level = WARN
-    commands().timefmt = "%H:%M:%S"
-    commands().log("incomplete", WARN)
+    cmds.logger.warn("incomplete")
     return -1
 
 
@@ -37,8 +33,7 @@ def add_cmd(_arg: argp):
 
 @run_command(add_cmd, add_cmd_list)
 def run_cmd(cmds: commands) -> int:
-    commands().timefmt = None
-    commands().log("main", DEBUG)
+    cmds.logger.debug("main")
     return 0
 
 
@@ -60,15 +55,15 @@ class Test_decorator(unittest.TestCase):
         pass
 
     def test_root(self):
-        ret = self.cmds.run(argv="--debug trace".split())
+        ret = self.cmds.run(argv="--debug".split())
         self.assertEqual(ret, 0)
 
     def test_parse_root(self):
-        ret = self.cmds.parse(argv="--debug trace".split())
+        ret = self.cmds.parse(argv="--debug".split())
         self.assertIsInstance(ret, Namespace)
 
     def test_run_root_error(self):
-        ret = self.cmds.run(mock.Mock(), argv="--debug trace".split())
+        ret = self.cmds.run(mock.Mock(), argv="--debug".split())
         self.assertEqual(ret, ENOENT)
 
     @mock.patch.object(argp, "filter_optional_name")
@@ -80,20 +75,18 @@ class Test_decorator(unittest.TestCase):
     @mock.patch.object(sys, "exit")
     def test_help_optional_h(self, mock_exit: mock.Mock):
         mock_exit.side_effect = [Exception("xarg-test")]
-        self.assertRaises(Exception, self.cmds.run, add_cmd, "-h -d".split())
+        self.assertRaises(Exception, self.cmds.run, add_cmd, "-h".split())
         mock_exit.assert_called_once_with(0)
 
     @mock.patch.object(sys, "exit")
     def test_help_optional_help(self, mock_exit: mock.Mock):
         mock_exit.side_effect = [Exception("xarg-test")]
         self.assertRaises(Exception, self.cmds.run, add_cmd_list,
-                          "--help --debug warn".split())
+                          "--help".split())
         mock_exit.assert_called_once_with(0)
 
     def test_subcommand_list(self):
-        ret = self.cmds.run(add_cmd,
-                            "list --detail".split(),
-                            prog="example")
+        ret = self.cmds.run(add_cmd, "list".split(), prog="example")
         self.assertEqual(ret, -1)
 
 

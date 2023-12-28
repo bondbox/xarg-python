@@ -45,7 +45,7 @@ class Test_argp(unittest.TestCase):
     def test_filter_optional_name(self):
         self.argp.add_opt_on("--debug")
         ret = self.argp.filter_optional_name("-d", "--debug")
-        self.assertEqual(ret, set(["-d"]))
+        self.assertSequenceEqual(ret, ["-d"])
 
     def test_add_pos(self):
         self.argp.add_pos("path", type=str, nargs="+")
