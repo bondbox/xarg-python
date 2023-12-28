@@ -9,7 +9,7 @@ import mock
 from xarg import argp
 
 
-class Test_argp(unittest.TestCase):
+class test_argp(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

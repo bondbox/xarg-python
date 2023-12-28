@@ -433,7 +433,7 @@ class commands:
         assert isinstance(root, add_command)
 
         _map: Dict[add_command, argp] = dict()
-        _arg = argp(**kwargs)
+        _arg = argp(argv=argv, **kwargs)
         self.__prog = _arg.prog
         self.__add_optional_version(_arg)
         # To support preparse_from_sys_argv(), all subparsers must be added

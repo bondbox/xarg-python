@@ -79,6 +79,7 @@ class argp(ArgumentParser):
     '''
 
     def __init__(self,
+                 argv: Optional[Sequence[str]] = None,
                  prog: Optional[str] = None,
                  usage: Optional[str] = None,
                  prev_parser: Optional["argp"] = None,
@@ -90,6 +91,7 @@ class argp(ArgumentParser):
         kwargs.setdefault("description", description)
         kwargs.setdefault("epilog", epilog)
         ArgumentParser.__init__(self, **kwargs)
+        self.__argv: Optional[Sequence[str]] = argv
         self.__help_option: Dict[str, _HelpAction] = dict()
         self.__prev_parser: argp = prev_parser or self
         self.__next_parser: List[argp] = list()
@@ -97,7 +99,11 @@ class argp(ArgumentParser):
             prev_parser.__next_parser.append(self)
 
     @property
-    def root_parser(self):
+    def argv(self) -> Optional[Sequence[str]]:
+        return self.root_parser.__argv
+
+    @property
+    def root_parser(self) -> "argp":
         root = self.__prev_parser
         while root.__prev_parser != root:
             root = root.__prev_parser
@@ -226,7 +232,7 @@ class argp(ArgumentParser):
 
         try:
             __dfs_disable_help_action(self.root_parser)
-            namespace, _ = self.root_parser.parse_known_args()
+            namespace, _ = self.root_parser.parse_known_args(self.argv)
             return namespace
         finally:
             __dfs_enable_help_action(self.root_parser)
