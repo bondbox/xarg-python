@@ -15,6 +15,8 @@ from typing import Set
 from typing import Tuple
 from typing import Union
 
+from pip._internal.commands.show import _PackageInfo
+from pip._internal.commands.show import search_packages_info
 from tabulate import tabulate
 
 from .actuator import add_command
@@ -83,77 +85,26 @@ def list_bash() -> Set[str]:
     return cmds
 
 
-class package_info:
-
-    def __init__(self, name: str):
-        self.__pkg_infos: Dict[str, str] = {}
-        self.__pkg_files: set[str] = set()
-        self.__have_file = False
-        with os.popen(f"pip show --files {name}") as fd:
-            for line in fd.readlines():
-                if not self.__have_file:
-                    title, value = line.split(":", 1)
-                    if title != "Files":
-                        self.__pkg_infos[title] = value.strip()
-                    else:
-                        self.__location = self.__pkg_infos["Location"]
-                        self.__have_file = True
-                else:
-                    path = os.path.join(self.location, line.strip())
-                    abspath = os.path.abspath(path)
-                    self.__pkg_files.add(abspath)
-                    if "entry_points.txt" in abspath:
-                        self.__entry_points = abspath
-
-    @property
-    def name(self) -> str:
-        return self.__pkg_infos["Name"]
-
-    @property
-    def version(self) -> str:
-        return self.__pkg_infos["Version"]
-
-    @property
-    def location(self) -> str:
-        return self.__location
-
-    @property
-    def requires(self) -> Set[str]:
-        return {i.strip() for i in self.__pkg_infos["Requires"].split(",")}
-
-    @property
-    def required_by(self) -> Set[str]:
-        return {i.strip() for i in self.__pkg_infos["Required-by"].split(",")}
-
-    @property
-    def files(self) -> Set[str]:
-        return self.__pkg_files
-
-    @property
-    def console_scripts(self) -> Set[str]:
-        try:
-            config = ConfigParser()
-            config.read(self.__entry_points)
-            return {i for i in config["console_scripts"]}
-        except Exception:
-            return set()
-
-
 @singleton
 class collections:
 
     def __init__(self):
-        info = package_info(__package_name__)
-        self.__pkgs: Set[str] = {i for i in info.required_by}
+        info = self.get_package_info(__package_name__)
         self.__cmds: Set[str] = {__prog_complete__}
-        for pkg in self.__pkgs:
-            pkgi = package_info(pkg)
-            for cmd in pkgi.console_scripts:
+        for _pkg in {i for i in info.required_by}:
+            pkgi = self.get_package_info(_pkg)
+            config = ConfigParser()
+            config.read_string(os.linesep.join(pkgi.entry_points))
+            for cmd in config["console_scripts"]:
                 self.__cmds.add(cmd)
 
     @property
     def cmds(self) -> Iterable[str]:
         return iter(self.__cmds)
+
+    @classmethod
+    def get_package_info(cls, name: str) -> _PackageInfo:
+        return [i for i in search_packages_info([name])][0]
 
 
 @add_command("enable", help="Enable completion.")
