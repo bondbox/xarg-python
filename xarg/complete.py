@@ -88,22 +88,22 @@ def list_bash() -> Set[str]:
 class collections:
 
     def __init__(self):
-        info = self.get_package_info(__package_name__)
-        self.__cmds: Set[str] = {__prog_complete__}
-        for _pkg in {i for i in info.required_by}:
-            pkgi = self.get_package_info(_pkg)
-            config = ConfigParser()
-            config.read_string(os.linesep.join(pkgi.entry_points))
-            for cmd in config["console_scripts"]:
-                self.__cmds.add(cmd)
+        self.__cmds: Set[str] = set()
+        for _pkg in {"argcomplete", __package_name__}:
+            for _req in {i for i in self.get_package_info(_pkg).required_by}:
+                config = ConfigParser()
+                package_info = self.get_package_info(_req)
+                config.read_string(os.linesep.join(package_info.entry_points))
+                for _cmd in config["console_scripts"]:
+                    self.__cmds.add(_cmd)
 
     @property
     def cmds(self) -> Iterable[str]:
         return iter(self.__cmds)
 
     @classmethod
-    def get_package_info(cls, name: str) -> _PackageInfo:
-        return [i for i in search_packages_info([name])][0]
+    def get_package_info(cls, package_name: str) -> _PackageInfo:
+        return [i for i in search_packages_info([package_name])][0]
 
 
 @add_command("enable", help="Enable completion.")
