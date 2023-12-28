@@ -448,34 +448,21 @@ class commands:
         return self.args
 
     def __run(self, args: Namespace, root: add_command) -> int:
-        if not isinstance(root, add_command):
-            return ENOENT
-
-        if not isinstance(root.bind, run_command):
-            return ENOENT
+        assert isinstance(root, add_command)
+        assert isinstance(root.bind, run_command)
 
         ret = root.bind.func(self)
         if ret != 0 and ret is not None:
             return ret
 
         if hasattr(args, root.sub_dest):
-
-            sub_name = getattr(args, root.sub_dest)
-            if isinstance(sub_name, str):
-
-                subs = root.subs
-                if not (isinstance(subs, list) or isinstance(subs, tuple)):
-                    return ENOENT
-
-                for sub in subs:
-                    if not isinstance(sub, add_command):
-                        continue
-
-                    if sub.name == sub_name:
+            sub_dest = getattr(args, root.sub_dest)
+            if isinstance(sub_dest, str):
+                assert isinstance(root.subs, (list, tuple))
+                for sub in root.subs:
+                    assert isinstance(sub, add_command)
+                    if sub.name == sub_dest:
                         return self.__run(args, sub)
-
-                return ENOENT
-
         return 0
 
     def run(self,

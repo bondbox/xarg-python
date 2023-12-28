@@ -13,7 +13,7 @@ from xarg import commands
 from xarg import run_command
 
 
-@add_command("list")
+@add_command("list", help="test list")
 def add_cmd_list(_arg: argp):
     commands().stderr("error")
     pass
