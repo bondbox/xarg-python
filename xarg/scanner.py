@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # coding:utf-8
 
 from hashlib import md5
