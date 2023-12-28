@@ -256,19 +256,14 @@ class commands:
         sys.stderr.flush()
 
     def __add_optional_version(self, argp: argp):
-
-        if not isinstance(self.version, str):
-            return
-
-        version = self.version.strip()
-        if not version:
+        version = self.version
+        if not isinstance(version, str):
             return
 
         options = argp.filter_optional_name("-v", "--version")
         if len(options) > 0:
-            argp.add_argument(*options,
-                              action="version",
-                              version=f"%(prog)s {version}")
+            argp.add_argument(*options, action="version",
+                              version=f"%(prog)s {version.strip()}")
 
     def __add_inner_parser_tail(self, argp: argp):
 
