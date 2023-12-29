@@ -32,10 +32,6 @@ class chdir:
     def __init__(self):
         self.__stack: List[str] = []
 
-    def __del__(self):
-        if len(self.__stack) > 0:
-            os.chdir(self.__stack[0])
-
     def pushd(self, path: str):
         '''
         Add directory to stack.
