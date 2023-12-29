@@ -411,11 +411,12 @@ class commands:
         _sub = arg_root.add_subparsers(dest=cmd_root.sub_dest)
         for sub in cmd_root.subs:
             assert isinstance(sub, add_command)
+            options = sub.options.copy()
             for key, value in kwargs.items():
-                sub.options.setdefault(key, value)
-            sub.options.setdefault("epilog", arg_root.epilog)
-            sub.options.setdefault("prev_parser", arg_root)
-            _arg: argp = _sub.add_parser(sub.name, **sub.options)
+                options.setdefault(key, value)
+            options.setdefault("epilog", arg_root.epilog)
+            options.setdefault("prev_parser", arg_root)
+            _arg: argp = _sub.add_parser(sub.name, **options)
             self.__add_parser(_map, _arg, sub)
 
     def __add_option(self, _map: Dict[add_command, argp]):
