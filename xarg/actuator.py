@@ -44,26 +44,26 @@ class add_command:
         self.__subs: Optional[Tuple[add_command, ...]] = None
 
     def __call__(self, cmd_func: Callable[[argp], None]):
-        self.__func = cmd_func
+        self.__func: Callable[[argp], None] = cmd_func
         return self
 
     @property
-    def func(self):
+    def func(self) -> Callable[[argp], None]:
         return self.__func
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__name
 
     @property
-    def root(self):
+    def root(self) -> "add_command":
         root = self.__prev
         while root.prev != root:
             root = root.prev
         return root
 
     @property
-    def prev(self):
+    def prev(self) -> "add_command":
         return self.__prev
 
     @prev.setter
@@ -72,15 +72,15 @@ class add_command:
         self.__prev = value
 
     @property
-    def cmds(self):
+    def cmds(self) -> "commands":
         return self.__cmds
 
     @property
-    def options(self):
+    def options(self) -> Dict[str, Any]:
         return self.__options
 
     @property
-    def bind(self):
+    def bind(self) -> Optional["run_command"]:
         return self.__bind
 
     @bind.setter
@@ -89,7 +89,7 @@ class add_command:
         self.__bind = value
 
     @property
-    def subs(self):
+    def subs(self) -> Optional[Tuple["add_command", ...]]:
         return self.__subs
 
     @subs.setter
@@ -97,7 +97,7 @@ class add_command:
         self.__subs = value
 
     @property
-    def sub_dest(self):
+    def sub_dest(self) -> str:
         return f"__sub_{self.name}_dest__"
 
 
@@ -126,11 +126,11 @@ class run_command:
         self.__bind: add_command = cmd_bind
 
     def __call__(self, run_func: Callable[["commands"], int]):
-        self.__func = run_func
+        self.__func: Callable[["commands"], int] = run_func
         return self
 
     @property
-    def func(self):
+    def func(self) -> Callable[["commands"], int]:
         return self.__func
 
     @property
