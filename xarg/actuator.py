@@ -173,8 +173,8 @@ class pre_command:
     For example:
 
     from xarg import commands\n
-    from xarg import run_command\n
     from xarg import pre_command\n
+    from xarg import run_command\n
 
     @run_command(cmd, cmd_get, cmd_set)\n
     def run(cmds: commands) -> int:\n
@@ -256,8 +256,8 @@ class commands:
     from xarg import argp\n
     from xarg import commands\n
     from xarg import end_command\n
-    from xarg import run_command\n
     from xarg import pre_command\n
+    from xarg import run_command\n
 
     @add_command("example")\n
     def cmd(_arg: argp):\n
@@ -578,6 +578,48 @@ class commands:
                         return self.__run(args, sub)
         return 0
 
+    def __pre(self, args: Namespace, root: add_command) -> int:
+        assert isinstance(root, add_command)
+        assert isinstance(root.bind, run_command)
+
+        prep = root.bind.prep
+        if prep is not None:
+            assert isinstance(prep, pre_command)
+            ret = prep.func(self)
+            if ret != 0 and ret is not None:
+                return ret
+
+        if hasattr(args, root.sub_dest):
+            sub_dest = getattr(args, root.sub_dest)
+            if isinstance(sub_dest, str):
+                assert isinstance(root.subs, (list, tuple))
+                for sub in root.subs:
+                    assert isinstance(sub, add_command)
+                    if sub.name == sub_dest:
+                        return self.__pre(args, sub)
+        return 0
+
+    def __end(self, args: Namespace, root: add_command) -> int:
+        assert isinstance(root, add_command)
+        assert isinstance(root.bind, run_command)
+
+        done = root.bind.done
+        if done is not None:
+            assert isinstance(done, end_command)
+            ret = done.func(self)
+            if ret != 0 and ret is not None:
+                return ret
+
+        if hasattr(args, root.sub_dest):
+            sub_dest = getattr(args, root.sub_dest)
+            if isinstance(sub_dest, str):
+                assert isinstance(root.subs, (list, tuple))
+                for sub in root.subs:
+                    assert isinstance(sub, add_command)
+                    if sub.name == sub_dest:
+                        return self.__end(args, sub)
+        return 0
+
     def run(self,
             root: Optional[add_command] = None,
             argv: Optional[Sequence[str]] = None,
@@ -603,7 +645,19 @@ class commands:
                 # items are debug level only, except for errors.
                 self.logger.debug(f"version: {version}")
 
-            return self.__run(args, root)
+            ret = self.__pre(args, root)
+            if ret != 0 and ret is not None:
+                return ret
+
+            ret = self.__run(args, root)
+            if ret != 0 and ret is not None:
+                return ret
+
+            ret = self.__end(args, root)
+            if ret != 0 and ret is not None:
+                return ret
+
+            return 0
         except KeyboardInterrupt:
             return EINTR
         except BaseException:
