@@ -19,7 +19,7 @@ from .util import singleton
 
 class add_command:
     '''
-    Define command-line arguments.
+    Define a new command-line node.
 
     For example:
 
@@ -103,11 +103,11 @@ class add_command:
 
 class run_command:
     '''
-    Bind command-line arguments and subcommands, define callback functions.
+    Define the main callback function, and bind it to a node and subcommands.
 
     For example:
 
-    from xarg import argp\n
+    from xarg import commands\n
     from xarg import run_command\n
 
     @run_command(cmd, cmd_get, cmd_set)\n
@@ -115,13 +115,13 @@ class run_command:
         return 0\n
     '''
 
-    def __init__(self, cmd_bind: add_command, *subs: add_command):
+    def __init__(self, cmd_bind: add_command, *sub_cmds: add_command):
         assert isinstance(cmd_bind, add_command)
-        for sub in subs:
+        for sub in sub_cmds:
             sub.prev = cmd_bind
 
         cmd_bind.bind = self
-        cmd_bind.subs = subs
+        cmd_bind.subs = sub_cmds
         commands().root = cmd_bind.root
         self.__bind: add_command = cmd_bind
 
@@ -143,7 +143,7 @@ class commands:
     '''
     Singleton command-line tool based on argparse.
 
-    Define and bind callback functions before calling run() or parse().
+    Define and bind all callback functions before calling run() or parse().
 
     For example:
 
