@@ -94,6 +94,9 @@ class add_command:
 
     @subs.setter
     def subs(self, value: Tuple["add_command", ...]):
+        assert isinstance(value, Tuple)
+        for sub in value:
+            assert isinstance(sub, add_command)
         self.__subs = value
 
     @property
@@ -117,13 +120,14 @@ class run_command:
 
     def __init__(self, cmd_bind: add_command, *sub_cmds: add_command):
         assert isinstance(cmd_bind, add_command)
-        for sub in sub_cmds:
-            sub.prev = cmd_bind
-
         cmd_bind.bind = self
         cmd_bind.subs = sub_cmds
+        for sub in sub_cmds:
+            sub.prev = cmd_bind
         commands().root = cmd_bind.root
         self.__bind: add_command = cmd_bind
+        self.__prep: Optional["pre_command"] = None
+        self.__done: Optional["end_command"] = None
 
     def __call__(self, run_func: Callable[["commands"], int]):
         self.__func: Callable[["commands"], int] = run_func
@@ -136,6 +140,98 @@ class run_command:
     @property
     def bind(self) -> add_command:
         return self.__bind
+
+    @property
+    def prep(self) -> Optional["pre_command"]:
+        return self.__prep
+
+    @prep.setter
+    def prep(self, value: "pre_command"):
+        assert isinstance(value, pre_command)
+        self.__prep = value
+
+    @property
+    def done(self) -> Optional["end_command"]:
+        return self.__done
+
+    @done.setter
+    def done(self, value: "end_command"):
+        assert isinstance(value, end_command)
+        self.__done = value
+
+
+class pre_command:
+    '''
+    Define prepare callback function, and bind it with main callback.
+
+    For example:
+
+    from xarg import commands\n
+    from xarg import run_command\n
+    from xarg import pre_command\n
+
+    @run_command(cmd, cmd_get, cmd_set)\n
+    def run(cmds: commands) -> int:\n
+        return 0\n
+
+    @pre_command(run)\n
+    def pre(cmds: commands) -> int:\n
+        return 0\n
+    '''
+
+    def __init__(self, run_bind: run_command):
+        assert isinstance(run_bind, run_command)
+        run_bind.prep = self
+        self.__main: run_command = run_bind
+
+    def __call__(self, run_func: Callable[["commands"], int]):
+        self.__func: Callable[["commands"], int] = run_func
+        return self
+
+    @property
+    def func(self) -> Callable[["commands"], int]:
+        return self.__func
+
+    @property
+    def main(self) -> run_command:
+        return self.__main
+
+
+class end_command:
+    '''
+    Define purge callback function, and bind it with main callback.
+
+    For example:
+
+    from xarg import commands\n
+    from xarg import end_command\n
+    from xarg import run_command\n
+
+    @run_command(cmd, cmd_get, cmd_set)\n
+    def run(cmds: commands) -> int:\n
+        return 0\n
+
+    @end_command(run)\n
+    def end(cmds: commands) -> int:\n
+        return 0\n
+    '''
+
+    def __init__(self, run_bind: run_command):
+        assert isinstance(run_bind, run_command)
+        run_bind.done = self
+        self.__main: run_command = run_bind
+
+    def __call__(self, run_func: Callable[["commands"], int]):
+        self.__func: Callable[["commands"], int] = run_func
+        return self
+
+    @property
+    def func(self) -> Callable[["commands"], int]:
+        return self.__func
+
+    @property
+    def main(self) -> run_command:
+        return self.__main
 
 
 @singleton
@@ -153,7 +249,9 @@ class commands:
     from xarg import add_command\n
     from xarg import argp\n
     from xarg import commands\n
+    from xarg import end_command\n
     from xarg import run_command\n
+    from xarg import pre_command\n
 
     @add_command("example")\n
     def cmd(_arg: argp):\n
@@ -161,6 +259,14 @@ class commands:
 
     @run_command(cmd, cmd_get, cmd_set)\n
     def run(cmds: commands) -> int:\n
+        return 0\n
+
+    @pre_command(run)\n
+    def pre(cmds: commands) -> int:\n
+        return 0\n
+
+    @end_command(run)\n
+    def end(cmds: commands) -> int:\n
         return 0\n
 
     def main(argv: Optional[Sequence[str]] = None) -> int:\n
