@@ -15,6 +15,8 @@ from xarg import __version__
 from xarg import add_command
 from xarg import argp
 from xarg import commands
+from xarg import end_command
+from xarg import pre_command
 from xarg import run_command
 
 
@@ -86,15 +88,60 @@ def run_cmd_exception(cmds: commands) -> int:
     raise BaseException
 
 
+@add_command("prepare", help="test prepare")
+def add_cmd_prepare(_arg: argp):
+    commands().stdout("prepare")
+
+
+@run_command(add_cmd_prepare)
+def run_cmd_prepare(cmds: commands) -> int:
+    return 0
+
+
+@pre_command(run_cmd_prepare)
+def pre_cmd_prepare(cmds: commands) -> int:
+    cmds.logger.info("prepare")
+    return -1
+
+
+@add_command("purge", help="test purge")
+def add_cmd_purge(_arg: argp):
+    commands().stdout("purge")
+
+
+@run_command(add_cmd_purge)
+def run_cmd_purge(cmds: commands) -> int:
+    return 0
+
+
+@end_command(run_cmd_purge)
+def end_cmd_purge(cmds: commands) -> int:
+    cmds.logger.info("purge")
+    return 1
+
+
 @add_command("example")
 def add_cmd(_arg: argp):
     commands().stdout("test")
 
 
 @run_command(add_cmd, add_cmd_list, add_cmd_incomplete,
-             add_cmd_keyboard, add_cmd_exception)
+             add_cmd_keyboard, add_cmd_exception,
+             add_cmd_prepare, add_cmd_purge)
 def run_cmd(cmds: commands) -> int:
     cmds.logger.debug("main")
+    return 0
+
+
+@pre_command(run_cmd)
+def pre_cmd(cmds: commands) -> int:
+    cmds.logger.debug("prepare")
+    return 0
+
+
+@end_command(run_cmd)
+def end_cmd(cmds: commands) -> int:
+    cmds.logger.debug("purge")
     return 0
 
 
@@ -147,12 +194,26 @@ class test_commands(unittest.TestCase):
         assert isinstance(self.cmds.root.bind, run_command)
         self.assertIsInstance(self.cmds.root.bind.bind, add_command)
         self.assertIs(self.cmds.root.bind.bind, self.cmds.root)
+        if self.cmds.root.bind.prep:
+            self.assertIsInstance(self.cmds.root.bind.prep, pre_command)
+            self.assertIs(self.cmds.root.bind.prep.main, self.cmds.root.bind)
+        if self.cmds.root.bind.done:
+            self.assertIsInstance(self.cmds.root.bind.done, end_command)
+            self.assertIs(self.cmds.root.bind.done.main, self.cmds.root.bind)
         self.assertIsInstance(self.cmds.root.subs, Tuple)
         assert isinstance(self.cmds.root.subs, Tuple)
         for _sub in self.cmds.root.subs:
             self.assertIsInstance(_sub, add_command)
             self.assertIs(_sub.root, self.cmds.root)
             self.assertIs(_sub.prev, self.cmds.root)
+            self.assertIsInstance(_sub.bind, run_command)
+            assert isinstance(_sub.bind, run_command)
+            if _sub.bind.prep:
+                self.assertIsInstance(_sub.bind.prep, pre_command)
+                self.assertIs(_sub.bind.prep.main, _sub.bind)
+            if _sub.bind.done:
+                self.assertIsInstance(_sub.bind.done, end_command)
+                self.assertIs(_sub.bind.done.main, _sub.bind)
             if _sub.subs:
                 for _son in _sub.subs:
                     self.assertIsInstance(_son, add_command)
@@ -176,6 +237,14 @@ class test_commands(unittest.TestCase):
             path = os.path.join(_tmp, "log.txt")
             ret = self.cmds.run(argv=f"exception --log {path}".split())
             self.assertEqual(ret, 10000)
+
+    def test_run_prepare(self):
+        ret = self.cmds.run(argv="prepare --stdout --debug".split())
+        self.assertEqual(ret, -1)
+
+    def test_run_purge(self):
+        ret = self.cmds.run(argv="purge --stderr --debug".split())
+        self.assertEqual(ret, 1)
 
     @mock.patch.object(argp, "filter_optional_name")
     def test_filter_optional_name(self, mock_filter_optional_name: mock.Mock):
