@@ -575,7 +575,16 @@ class commands:
                 for sub in root.subs:
                     assert isinstance(sub, add_command)
                     if sub.name == sub_dest:
-                        return self.__run(args, sub)
+                        ret = self.__run(args, sub)
+                        if ret != 0 and ret is not None:
+                            return ret
+
+        done = root.bind.done
+        if done is not None:
+            assert isinstance(done, end_command)
+            ret = done.func(self)  # purge
+            if ret != 0 and ret is not None:
+                return ret
         return 0
 
     def __pre(self, args: Namespace, root: add_command) -> int:
@@ -597,27 +606,6 @@ class commands:
                     assert isinstance(sub, add_command)
                     if sub.name == sub_dest:
                         return self.__pre(args, sub)
-        return 0
-
-    def __end(self, args: Namespace, root: add_command) -> int:
-        assert isinstance(root, add_command)
-        assert isinstance(root.bind, run_command)
-
-        done = root.bind.done
-        if done is not None:
-            assert isinstance(done, end_command)
-            ret = done.func(self)
-            if ret != 0 and ret is not None:
-                return ret
-
-        if hasattr(args, root.sub_dest):
-            sub_dest = getattr(args, root.sub_dest)
-            if isinstance(sub_dest, str):
-                assert isinstance(root.subs, (list, tuple))
-                for sub in root.subs:
-                    assert isinstance(sub, add_command)
-                    if sub.name == sub_dest:
-                        return self.__end(args, sub)
         return 0
 
     def run(self,
@@ -648,16 +636,7 @@ class commands:
             ret = self.__pre(args, root)
             if ret != 0 and ret is not None:
                 return ret
-
-            ret = self.__run(args, root)
-            if ret != 0 and ret is not None:
-                return ret
-
-            ret = self.__end(args, root)
-            if ret != 0 and ret is not None:
-                return ret
-
-            return 0
+            return self.__run(args, root)
         except KeyboardInterrupt:
             return EINTR
         except BaseException:
