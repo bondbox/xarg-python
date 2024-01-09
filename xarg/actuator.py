@@ -101,7 +101,13 @@ class add_command:
 
     @property
     def sub_dest(self) -> str:
-        return f"__sub_{self.name}_dest__"
+        node: add_command = self
+        subs: List[str] = [self.name]
+        while node.prev is not node:
+            node = node.prev
+            subs.insert(0, node.name)
+        name = "_".join(subs)
+        return f"__sub_dest_{name}__"
 
 
 class run_command:
