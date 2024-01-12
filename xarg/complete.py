@@ -94,8 +94,9 @@ class collections:
                 config = ConfigParser()
                 package_info = self.get_package_info(_req)
                 config.read_string(os.linesep.join(package_info.entry_points))
-                for _cmd in config["console_scripts"]:
-                    self.__cmds.add(_cmd)
+                if config.has_section("console_scripts"):
+                    for _cmd in config["console_scripts"]:
+                        self.__cmds.add(_cmd)
 
     @property
     def cmds(self) -> Iterable[str]:
