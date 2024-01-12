@@ -4,12 +4,17 @@
 import os
 from typing import List
 
-__package_name__ = "xarg-python"
-__prog_name__ = "xarg"
-__prog_complete__ = "xargcomplete"
-__version__ = "1.3.alpha.1"
-
-URL_PROG = "https://github.com/bondbox/xarg-python"
+from .attribute import __author__
+from .attribute import __author_email__
+from .attribute import __description__
+from .attribute import __name__
+from .attribute import __prog_complete__
+from .attribute import __prog_name__
+from .attribute import __url_bugs__
+from .attribute import __url_code__
+from .attribute import __url_docs__
+from .attribute import __url_home__
+from .attribute import __version__
 
 
 def singleton(cls):

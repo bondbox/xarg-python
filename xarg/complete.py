@@ -22,9 +22,9 @@ from .actuator import add_command
 from .actuator import commands
 from .actuator import run_command
 from .parser import argp
-from .util import URL_PROG
-from .util import __package_name__
+from .util import __name__
 from .util import __prog_complete__
+from .util import __url_home__
 from .util import __version__
 from .util import singleton
 
@@ -89,7 +89,7 @@ class collections:
 
     def __init__(self):
         self.__cmds: Set[str] = set()
-        for _pkg in {"argcomplete", __package_name__}:
+        for _pkg in {"argcomplete", __name__}:
             for _req in {i for i in self.get_package_info(_pkg).required_by}:
                 config = ConfigParser()
                 package_info = self.get_package_info(_req)
@@ -234,4 +234,4 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         root=add_cmd,
         argv=argv,
         description="Tab completion management.",
-        epilog=f"For more, please visit {URL_PROG}.")
+        epilog=f"For more, please visit {__url_home__}.")

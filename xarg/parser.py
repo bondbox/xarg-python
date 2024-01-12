@@ -14,7 +14,7 @@ from typing import Tuple
 
 from argcomplete import autocomplete
 
-from .util import URL_PROG
+from .util import __url_home__ as __url__
 
 
 class checker():
@@ -84,7 +84,7 @@ class argp(ArgumentParser):
                  usage: Optional[str] = None,
                  prev_parser: Optional["argp"] = None,
                  description: Optional[str] = "Command-line based on xarg.",
-                 epilog: Optional[str] = f"For more, please visit {URL_PROG}",
+                 epilog: Optional[str] = f"For more, please visit {__url__}",
                  **kwargs):
         kwargs.setdefault("prog", prog)
         kwargs.setdefault("usage", usage)
