@@ -353,14 +353,14 @@ class commands:
         '''
         return logging.getLogger(self.prog)
 
-    def stdout(self, context):
+    def stdout(self, context: Any):
         '''
         Output string to sys.stdout.
         '''
         sys.stdout.write(f"{context}\n")
         sys.stdout.flush()
 
-    def stderr(self, context):
+    def stderr(self, context: Any):
         '''
         Output string to sys.stderr.
         '''
