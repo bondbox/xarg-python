@@ -150,7 +150,8 @@ class run_command:
         @type *sub_cmds: add_command
 
         @param skip: This node (run_command, pre_command and end_command)
-        does not run when a subcommand is specified
+        does not run when a subcommand is specified, run this node without
+        any subcommands
         @type skip: bool (default: False)
         '''
         assert isinstance(cmd_bind, add_command)
@@ -602,23 +603,31 @@ class commands:
         self.args = args
         return self.args
 
-    def has_sub(self, root: add_command) -> bool:
+    def has_sub(self, root: add_command,
+                args: Optional[Namespace] = None) -> bool:
         '''
         If the root command node has any subcommand nodes, return true.
 
         @param root: Command node
         @type root: add_command
 
+        @param args: Command arguments
+        @type args: Namespace or None (default self.args if None is specified)
+
         @return: bool
         '''
+        if args is None:
+            args = self.args
         assert isinstance(root, add_command)
-        return hasattr(self.args, root.sub_dest)
+        assert isinstance(args, Namespace)
+        return isinstance(getattr(args, root.sub_dest), str)\
+            if hasattr(args, root.sub_dest) else False
 
     def __run(self, args: Namespace, root: add_command) -> int:
         assert isinstance(root, add_command)
         assert isinstance(root.bind, run_command)
 
-        if not root.bind.skip or not hasattr(args, root.sub_dest):
+        if not root.bind.skip or not self.has_sub(root, args):
             ret = root.bind.func(self)
             if ret != 0 and ret is not None:
                 return ret
@@ -637,7 +646,7 @@ class commands:
         done = root.bind.done
         if done is not None:
             assert isinstance(done, end_command)
-            if not root.bind.skip or not hasattr(args, root.sub_dest):
+            if not root.bind.skip or not self.has_sub(root, args):
                 ret = done.func(self)  # purge
                 if ret != 0 and ret is not None:
                     return ret
@@ -650,7 +659,7 @@ class commands:
         prep = root.bind.prep
         if prep is not None:
             assert isinstance(prep, pre_command)
-            if not root.bind.skip or not hasattr(args, root.sub_dest):
+            if not root.bind.skip or not self.has_sub(root, args):
                 ret = prep.func(self)
                 if ret != 0 and ret is not None:
                     return ret
