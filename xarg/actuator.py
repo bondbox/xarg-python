@@ -23,12 +23,12 @@ class add_command:
 
     For example:
 
-    from xarg import add_command\n
-    from xarg import argp\n
+    >>> from xarg import add_command\n
+    >>> from xarg import argp\n
 
-    @add_command("example")\n
-    def cmd(_arg: argp):\n
-        argp.add_opt_on("-t", "--test")\n
+    >>> @add_command("example")\n
+    >>> def cmd(_arg: argp):\n
+    >>>     argp.add_opt_on("-t", "--test")\n
     '''
 
     def __init__(self, name: str, **kwargs):
@@ -116,12 +116,12 @@ class run_command:
 
     For example:
 
-    from xarg import commands\n
-    from xarg import run_command\n
+    >>> from xarg import commands\n
+    >>> from xarg import run_command\n
 
-    @run_command(cmd, cmd_get, cmd_set)\n
-    def run(cmds: commands) -> int:\n
-        return 0\n
+    >>> @run_command(cmd, cmd_get, cmd_set)\n
+    >>> def run(cmds: commands) -> int:\n
+    >>>     return 0\n
     '''
 
     def __init__(self, cmd_bind: add_command, *sub_cmds: add_command,
@@ -179,17 +179,17 @@ class pre_command:
 
     For example:
 
-    from xarg import commands\n
-    from xarg import pre_command\n
-    from xarg import run_command\n
+    >>> from xarg import commands\n
+    >>> from xarg import pre_command\n
+    >>> from xarg import run_command\n
 
-    @run_command(cmd, cmd_get, cmd_set)\n
-    def run(cmds: commands) -> int:\n
-        return 0\n
+    >>> @run_command(cmd, cmd_get, cmd_set)\n
+    >>> def run(cmds: commands) -> int:\n
+    >>>     return 0\n
 
-    @pre_command(run)\n
-    def pre(cmds: commands) -> int:\n
-        return 0\n
+    >>> @pre_command(run)\n
+    >>> def pre(cmds: commands) -> int:\n
+    >>>     return 0\n
     '''
 
     def __init__(self, run_bind: run_command):
@@ -216,17 +216,17 @@ class end_command:
 
     For example:
 
-    from xarg import commands\n
-    from xarg import end_command\n
-    from xarg import run_command\n
+    >>> from xarg import commands\n
+    >>> from xarg import end_command\n
+    >>> from xarg import run_command\n
 
-    @run_command(cmd, cmd_get, cmd_set)\n
-    def run(cmds: commands) -> int:\n
-        return 0\n
+    >>> @run_command(cmd, cmd_get, cmd_set)\n
+    >>> def run(cmds: commands) -> int:\n
+    >>>     return 0\n
 
-    @end_command(run)\n
-    def end(cmds: commands) -> int:\n
-        return 0\n
+    >>> @end_command(run)\n
+    >>> def end(cmds: commands) -> int:\n
+    >>>     return 0\n
     '''
 
     def __init__(self, run_bind: run_command):
@@ -256,38 +256,38 @@ class commands:
 
     For example:
 
-    from typing import Optional\n
-    from typing import Sequence\n
+    >>> from typing import Optional\n
+    >>> from typing import Sequence\n
 
-    from xarg import add_command\n
-    from xarg import argp\n
-    from xarg import commands\n
-    from xarg import end_command\n
-    from xarg import pre_command\n
-    from xarg import run_command\n
+    >>> from xarg import add_command\n
+    >>> from xarg import argp\n
+    >>> from xarg import commands\n
+    >>> from xarg import end_command\n
+    >>> from xarg import pre_command\n
+    >>> from xarg import run_command\n
 
-    @add_command("example")\n
-    def cmd(_arg: argp):\n
-        argp.add_opt_on("-t", "--test")\n
+    >>> @add_command("example")\n
+    >>> def cmd(_arg: argp):\n
+    >>>     argp.add_opt_on("-t", "--test")\n
 
-    @run_command(cmd, cmd_get, cmd_set)\n
-    def run(cmds: commands) -> int:\n
-        return 0\n
+    >>> @run_command(cmd, cmd_get, cmd_set)\n
+    >>> def run(cmds: commands) -> int:\n
+    >>>     return 0\n
 
-    @pre_command(run)\n
-    def pre(cmds: commands) -> int:\n
-        return 0\n
+    >>> @pre_command(run)\n
+    >>> def pre(cmds: commands) -> int:\n
+    >>>     return 0\n
 
-    @end_command(run)\n
-    def end(cmds: commands) -> int:\n
-        return 0\n
+    >>> @end_command(run)\n
+    >>> def end(cmds: commands) -> int:\n
+    >>>     return 0\n
 
-    def main(argv: Optional[Sequence[str]] = None) -> int:\n
-        return commands().run(\n
-            root=cmd,\n
-            argv=argv,\n
-            prog="xarg-example",\n
-            description="Simple command-line tool based on argparse.")\n
+    >>> def main(argv: Optional[Sequence[str]] = None) -> int:\n
+    >>>     return commands().run(\n
+    >>>         root=cmd,\n
+    >>>         argv=argv,\n
+    >>>         prog="xarg-example",\n
+    >>>         description="Simple command-line tool based on argparse.")\n
     '''
 
     LOGGER_ARGUMENT_GROUP = "logger options"
