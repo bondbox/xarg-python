@@ -3,7 +3,7 @@
 from urllib.parse import urljoin
 
 __name__ = "xarg-python"
-__version__ = "1.3.alpha.2"
+__version__ = "1.3.beta.1"
 __description__ = "Simple command-line tool based on argparse."
 __url_home__ = "https://github.com/bondbox/xarg-python"
 __url_code__ = __url_home__

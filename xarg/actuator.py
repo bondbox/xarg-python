@@ -32,6 +32,22 @@ class add_command:
     '''
 
     def __init__(self, name: str, **kwargs):
+        '''
+        @param name: Node name
+        @type name: str
+
+        @param description: Text to display before the argument help
+        @type description: str (by default, no text)
+
+        @param epilog: Text to display after the argument help
+        @type epilog: str (by default, no text)
+
+        @param help: Help message as a subcommand
+        @type help: str
+
+        @param add_help: Add a -h/--help option to the node
+        @type add_help: bool (default: True)
+        '''
         if "help" in kwargs and "description" not in kwargs:
             kwargs["description"] = kwargs["help"]
         if "description" in kwargs and "help" not in kwargs:
@@ -126,6 +142,17 @@ class run_command:
 
     def __init__(self, cmd_bind: add_command, *sub_cmds: add_command,
                  skip: bool = False):
+        '''
+        @param cmd_bind: Bind to a root command node
+        @type name: add_command
+
+        @param *sub_cmds: All required subcommands
+        @type *sub_cmds: add_command
+
+        @param skip: This node (run_command, pre_command and end_command)
+        does not run when a subcommand is specified
+        @type skip: bool (default: False)
+        '''
         assert isinstance(cmd_bind, add_command)
         assert isinstance(skip, bool)
         cmd_bind.bind = self
@@ -193,6 +220,10 @@ class pre_command:
     '''
 
     def __init__(self, run_bind: run_command):
+        '''
+        @param cmd_bind: Bind to a root command node
+        @type name: add_command
+        '''
         assert isinstance(run_bind, run_command)
         run_bind.prep = self
         self.__main: run_command = run_bind
@@ -230,6 +261,10 @@ class end_command:
     '''
 
     def __init__(self, run_bind: run_command):
+        '''
+        @param cmd_bind: Bind to a root command node
+        @type name: add_command
+        '''
         assert isinstance(run_bind, run_command)
         run_bind.done = self
         self.__main: run_command = run_bind
@@ -568,6 +603,14 @@ class commands:
         return self.args
 
     def has_sub(self, root: add_command) -> bool:
+        '''
+        If the root command node has any subcommand nodes, return true.
+
+        @param root: Command node
+        @type root: add_command
+
+        @return: bool
+        '''
         assert isinstance(root, add_command)
         return hasattr(self.args, root.sub_dest)
 
