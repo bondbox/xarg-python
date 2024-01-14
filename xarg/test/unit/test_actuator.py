@@ -253,6 +253,10 @@ class test_commands(unittest.TestCase):
                             description="unittest")
         self.assertEqual(ret, 0)
 
+    def test_has_sub(self):
+        ret = self.cmds.has_sub(add_cmd)
+        self.assertIsInstance(ret, bool)
+
     def test_subcommand_list(self):
         ret = self.cmds.run(add_cmd, "incomplete".split(), prog="example")
         self.assertEqual(ret, -1)
