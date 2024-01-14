@@ -124,13 +124,16 @@ class run_command:
         return 0\n
     '''
 
-    def __init__(self, cmd_bind: add_command, *sub_cmds: add_command):
+    def __init__(self, cmd_bind: add_command, *sub_cmds: add_command,
+                 skip: bool = False):
         assert isinstance(cmd_bind, add_command)
+        assert isinstance(skip, bool)
         cmd_bind.bind = self
         cmd_bind.subs = sub_cmds
         for sub in sub_cmds:
             sub.prev = cmd_bind
         commands().root = cmd_bind.root
+        self.__skip: bool = skip
         self.__bind: add_command = cmd_bind
         self.__prep: Optional["pre_command"] = None
         self.__done: Optional["end_command"] = None
@@ -164,6 +167,10 @@ class run_command:
     def done(self, value: "end_command"):
         assert isinstance(value, end_command)
         self.__done = value
+
+    @property
+    def skip(self) -> bool:
+        return self.__skip
 
 
 class pre_command:
@@ -560,13 +567,18 @@ class commands:
         self.args = args
         return self.args
 
+    def has_sub(self, root: add_command) -> bool:
+        assert isinstance(root, add_command)
+        return hasattr(self.args, root.sub_dest)
+
     def __run(self, args: Namespace, root: add_command) -> int:
         assert isinstance(root, add_command)
         assert isinstance(root.bind, run_command)
 
-        ret = root.bind.func(self)
-        if ret != 0 and ret is not None:
-            return ret
+        if not root.bind.skip or not hasattr(args, root.sub_dest):
+            ret = root.bind.func(self)
+            if ret != 0 and ret is not None:
+                return ret
 
         if hasattr(args, root.sub_dest):
             sub_dest = getattr(args, root.sub_dest)
@@ -582,9 +594,10 @@ class commands:
         done = root.bind.done
         if done is not None:
             assert isinstance(done, end_command)
-            ret = done.func(self)  # purge
-            if ret != 0 and ret is not None:
-                return ret
+            if not root.bind.skip or not hasattr(args, root.sub_dest):
+                ret = done.func(self)  # purge
+                if ret != 0 and ret is not None:
+                    return ret
         return 0
 
     def __pre(self, args: Namespace, root: add_command) -> int:
@@ -594,9 +607,10 @@ class commands:
         prep = root.bind.prep
         if prep is not None:
             assert isinstance(prep, pre_command)
-            ret = prep.func(self)
-            if ret != 0 and ret is not None:
-                return ret
+            if not root.bind.skip or not hasattr(args, root.sub_dest):
+                ret = prep.func(self)
+                if ret != 0 and ret is not None:
+                    return ret
 
         if hasattr(args, root.sub_dest):
             sub_dest = getattr(args, root.sub_dest)
