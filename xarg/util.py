@@ -2,6 +2,7 @@
 
 
 import os
+import shutil
 from typing import List
 
 from .attribute import __author__
@@ -49,3 +50,28 @@ class chdir:
         '''
         assert len(self.__stack) > 0
         os.chdir(self.__stack.pop())
+
+
+class safile:
+    '''Secure read and write files
+    '''
+
+    @classmethod
+    def backup(cls, path: str) -> bool:
+        pbak: str = f"{path}.bak"
+        assert not os.path.exists(pbak), f"backup '{pbak}' already exists"
+        if not os.path.exists(path):
+            return True
+        assert os.path.isfile(path), f"'{path}' is not a regular file"
+        assert shutil.move(src=path, dst=pbak) == pbak
+        return os.path.exists(pbak)
+
+    @classmethod
+    def restore(cls, path: str) -> bool:
+        pbak: str = f"{path}.bak"
+        if os.path.isfile(pbak):
+            if os.path.isfile(path):
+                os.remove(path)
+            assert not os.path.exists(path), f"restore {path} still exists"
+            assert shutil.move(src=pbak, dst=path) == path
+        return not os.path.exists(pbak)
