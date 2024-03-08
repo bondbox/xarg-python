@@ -52,16 +52,18 @@ class test_safile(unittest.TestCase):
     def test_backup_and_restore(self):
         with TemporaryDirectory() as thdl:
             path = os.path.join(thdl, "test")
-            self.assertTrue(safile.backup(path))
+            self.assertTrue(safile.create_backup(path))
             with open(path, "w") as whdl:
                 whdl.write(self.text)
-            self.assertTrue(safile.backup(path))
-            self.assertRaises(AssertionError, safile.backup, path)
+            self.assertTrue(safile.create_backup(path))
+            self.assertTrue(safile.create_backup(path))
             with open(path, "w") as whdl:
                 whdl.write("unittest")
             self.assertTrue(safile.restore(path))
             with open(path, "r") as rhdl:
                 self.assertEqual(rhdl.read(), self.text)
+            self.assertTrue(safile.create_backup(path))
+            self.assertTrue(safile.dalete_backup(path))
 
 
 if __name__ == "__main__":

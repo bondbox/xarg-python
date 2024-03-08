@@ -54,24 +54,49 @@ class chdir:
 
 class safile:
     '''Secure read and write files
+
+    Backup before writing and restore (if backup exists) before reading.
     '''
 
     @classmethod
-    def backup(cls, path: str) -> bool:
-        pbak: str = f"{path}.bak"
+    def get_backup_path(cls, origin: str) -> str:
+        '''Unified backup path
+        '''
+        return f"{origin}.bak"
+
+    @classmethod
+    def create_backup(cls, path: str) -> bool:
+        '''Create a backup before writing file
+        '''
+        pbak: str = cls.get_backup_path(path)
+        if os.path.isfile(pbak):  # Restore before creating a new backup
+            assert cls.restore(path), f"restore '{path}' failed"
         assert not os.path.exists(pbak), f"backup '{pbak}' already exists"
-        if not os.path.exists(path):
+        if not os.path.exists(path):  # No need for backup
             return True
         assert os.path.isfile(path), f"'{path}' is not a regular file"
-        assert shutil.move(src=path, dst=pbak) == pbak
+        assert shutil.move(src=path, dst=pbak) == pbak, \
+            f"backup '{path}' failed"
         return os.path.exists(pbak)
 
     @classmethod
+    def dalete_backup(cls, path: str) -> bool:
+        '''Delete backup after writing file
+        '''
+        pbak: str = cls.get_backup_path(path)
+        if os.path.isfile(pbak):
+            os.remove(pbak)
+        return not os.path.exists(pbak)
+
+    @classmethod
     def restore(cls, path: str) -> bool:
-        pbak: str = f"{path}.bak"
+        '''Restore (if backup exists) before reading file
+        '''
+        pbak: str = cls.get_backup_path(path)
         if os.path.isfile(pbak):
             if os.path.isfile(path):
                 os.remove(path)
-            assert not os.path.exists(path), f"restore {path} still exists"
-            assert shutil.move(src=pbak, dst=path) == path
+            assert not os.path.exists(path), f"'{path}' still exists"
+            assert shutil.move(src=pbak, dst=path) == path, \
+                f"restore '{pbak}' to '{path}' failed"
         return not os.path.exists(pbak)
