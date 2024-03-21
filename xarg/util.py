@@ -65,8 +65,15 @@ class safile:
         return f"{origin}.bak"
 
     @classmethod
-    def create_backup(cls, path: str) -> bool:
+    def create_backup(cls, path: str, copy: bool = False) -> bool:
         '''Create a backup before writing file
+
+        Backup files with '.bak' suffix will be created in the same directory.
+        By default shutil.move() is used to create the backup file, which will
+        use os.rename() to rename the original file. This will make the backup
+        very efficient.
+        But, if you wish to append to the original file, you need to specify
+        'copy=True' to use shutil.copy2().
         '''
         pbak: str = cls.get_backup_path(path)
         if os.path.isfile(pbak):  # Restore before creating a new backup
@@ -75,8 +82,8 @@ class safile:
         if not os.path.exists(path):  # No need for backup
             return True
         assert os.path.isfile(path), f"'{path}' is not a regular file"
-        assert shutil.move(src=path, dst=pbak) == pbak, \
-            f"backup '{path}' failed"
+        method = shutil.copy2 if copy else shutil.move
+        assert method(src=path, dst=pbak) == pbak, f"backup '{path}' failed"
         return os.path.exists(pbak)
 
     @classmethod

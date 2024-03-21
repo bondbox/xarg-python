@@ -55,14 +55,14 @@ class test_safile(unittest.TestCase):
             self.assertTrue(safile.create_backup(path))
             with open(path, "w") as whdl:
                 whdl.write(self.text)
-            self.assertTrue(safile.create_backup(path))
+            self.assertTrue(safile.create_backup(path, copy=True))
             self.assertTrue(safile.create_backup(path))
             with open(path, "w") as whdl:
                 whdl.write("unittest")
             self.assertTrue(safile.restore(path))
             with open(path, "r") as rhdl:
                 self.assertEqual(rhdl.read(), self.text)
-            self.assertTrue(safile.create_backup(path))
+            self.assertTrue(safile.create_backup(path, copy=False))
             self.assertTrue(safile.delete_backup(path))
 
 
