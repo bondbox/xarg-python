@@ -80,7 +80,7 @@ class safile:
         return os.path.exists(pbak)
 
     @classmethod
-    def dalete_backup(cls, path: str) -> bool:
+    def delete_backup(cls, path: str) -> bool:
         '''Delete backup after writing file
         '''
         pbak: str = cls.get_backup_path(path)

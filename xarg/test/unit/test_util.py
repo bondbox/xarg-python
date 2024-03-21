@@ -63,7 +63,7 @@ class test_safile(unittest.TestCase):
             with open(path, "r") as rhdl:
                 self.assertEqual(rhdl.read(), self.text)
             self.assertTrue(safile.create_backup(path))
-            self.assertTrue(safile.dalete_backup(path))
+            self.assertTrue(safile.delete_backup(path))
 
 
 if __name__ == "__main__":
