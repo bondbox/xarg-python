@@ -6,7 +6,7 @@ from setuptools import setup
 from xarg.util import __author__
 from xarg.util import __author_email__
 from xarg.util import __description__
-from xarg.util import __name__
+from xarg.util import __project__
 from xarg.util import __url_bugs__
 from xarg.util import __url_code__
 from xarg.util import __url_docs__
@@ -14,7 +14,7 @@ from xarg.util import __url_home__
 from xarg.util import __version__
 
 setup(
-    name=__name__,
+    name=__project__,
     version=__version__,
     description=__description__,
     url=__url_home__,

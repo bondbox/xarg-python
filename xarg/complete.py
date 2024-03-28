@@ -22,7 +22,7 @@ from .actuator import add_command
 from .actuator import commands
 from .actuator import run_command
 from .parser import argp
-from .util import __name__
+from .util import __project__
 from .util import __prog_complete__
 from .util import __url_home__
 from .util import __version__
@@ -89,7 +89,7 @@ class collections:
 
     def __init__(self):
         self.__cmds: Set[str] = set()
-        for _pkg in {"argcomplete", __name__}:
+        for _pkg in {"argcomplete", __project__}:
             for _req in {i for i in self.get_package_info(_pkg).required_by}:
                 config = ConfigParser()
                 package_info = self.get_package_info(_req)
