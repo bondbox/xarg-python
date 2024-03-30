@@ -12,9 +12,12 @@ from typing import Sequence
 from typing import Set
 from typing import Tuple
 
-from argcomplete import autocomplete
-
 from .util import __url_home__ as __url__
+
+try:
+    from argcomplete import autocomplete
+except ModuleNotFoundError:
+    pass
 
 
 class checker():
@@ -23,8 +26,7 @@ class checker():
 
     @classmethod
     def check_name_pos(cls, fn):
-        '''
-        check positional argument name
+        '''check positional argument name
         '''
 
         def inner(self, name: str, **kwargs):
@@ -36,8 +38,7 @@ class checker():
 
     @classmethod
     def check_name_opt(cls, fn):
-        '''
-        check optional argument name
+        '''check optional argument name
         '''
 
         def inner(self, *name: str, **kwargs):
@@ -54,8 +55,7 @@ class checker():
 
     @classmethod
     def check_nargs_opt(cls, fn):
-        '''
-        nargs hook function:
+        '''nargs hook function:
             nargs < -1: using "?", 0 or 1 argument, default value
             nargs = -1: using "+", arguments list, at least 1
             nargs = 0: using "*", arguments list, allow to be empty
@@ -74,8 +74,7 @@ class checker():
 
 
 class argp(ArgumentParser):
-    '''
-    Simple command-line tool based on argparse.
+    '''Simple command-line tool based on argparse.
     '''
 
     def __init__(self,
@@ -113,8 +112,7 @@ class argp(ArgumentParser):
                        title: Optional[str] = None,
                        description: Optional[str] = None,
                        **kwargs) -> _ArgumentGroup:
-        '''
-        Find the created argument group by title, create if not exist.
+        '''Find the created argument group by title, create if not exist.
         '''
         for group in self._action_groups:
             if title == group.title:
@@ -123,8 +121,7 @@ class argp(ArgumentParser):
 
     @checker.check_name_opt
     def filter_optional_name(self, *name: str) -> Sequence[str]:
-        '''
-        Filter defined optional argument name.
+        '''Filter defined optional argument name.
         '''
         option_strings: Set[str] = set()
         for action in self._get_optional_actions():
@@ -133,8 +130,7 @@ class argp(ArgumentParser):
 
     @checker.check_name_pos
     def add_pos(self, name: str, **kwargs) -> None:
-        '''
-        Add positional argument.
+        '''Add positional argument.
         '''
         assert "dest" not in kwargs, \
             "dest supplied twice for positional argument"
@@ -143,15 +139,13 @@ class argp(ArgumentParser):
     @checker.check_name_opt
     @checker.check_nargs_opt
     def add_opt(self, *name: str, **kwargs) -> None:
-        '''
-        Add optional argument.
+        '''Add optional argument.
         '''
         self.add_argument(*name, **kwargs)
 
     @checker.check_name_opt
     def add_opt_on(self, *name: str, **kwargs) -> None:
-        '''
-        Add boolean optional argument, default value is False.
+        '''Add boolean optional argument, default value is False.
         '''
         kwargs.update({"action": "store_true"})
         for key in ("type", "nargs", "const", "default", "choices"):
@@ -160,8 +154,7 @@ class argp(ArgumentParser):
 
     @checker.check_name_opt
     def add_opt_off(self, *name: str, **kwargs) -> None:
-        '''
-        Add boolean optional argument, default value is True.
+        '''Add boolean optional argument, default value is True.
         '''
         kwargs.update({"action": "store_false"})
         for key in ("type", "nargs", "const", "default", "choices"):
@@ -169,8 +162,7 @@ class argp(ArgumentParser):
         self.add_argument(*name, **kwargs)
 
     def add_subparsers(self, *args, **kwargs) -> _SubParsersAction:
-        '''
-        Add subparsers.
+        '''Add subparsers.
         '''
         # subparser: cannot have multiple subparser arguments
         kwargs.setdefault("title", "subcommands")
@@ -182,7 +174,10 @@ class argp(ArgumentParser):
 
     def parse_args(self, args: Optional[Sequence[str]] = None,
                    namespace: Optional[Namespace] = None) -> Namespace:
-        autocomplete(self)  # For tab completion
+        try:
+            autocomplete(self)  # For tab completion
+        except NameError:
+            pass
         return super().parse_args(args=args, namespace=namespace)
 
     def parse_known_args(self, args: Optional[Sequence[str]] = None,
@@ -205,8 +200,7 @@ class argp(ArgumentParser):
             self._option_string_actions.pop(option)
 
     def preparse_from_sys_argv(self) -> Namespace:
-        '''
-        Preparse some arguments from sys.argv for tab completion.
+        '''Preparse some arguments from sys.argv for tab completion.
 
         When arguments contain the help option, call parse_known_args()
         will print help message and exit. The command line can parse

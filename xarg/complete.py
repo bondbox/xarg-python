@@ -3,8 +3,10 @@
 from base64 import b16decode
 from base64 import b16encode
 from configparser import ConfigParser
+from errno import EPERM
 import os
 import shutil
+import sys
 from typing import Dict
 from typing import Iterable
 from typing import List
@@ -22,8 +24,8 @@ from .actuator import add_command
 from .actuator import commands
 from .actuator import run_command
 from .parser import argp
-from .util import __project__
 from .util import __prog_complete__
+from .util import __project__
 from .util import __url_home__
 from .util import __version__
 from .util import singleton
@@ -224,6 +226,9 @@ def add_cmd(_arg: argp):
 @run_command(add_cmd, add_cmd_enable, add_cmd_update, add_cmd_remove,
              add_cmd_list)
 def run_cmd(cmds: commands) -> int:
+    if sys.version_info < (3, 8):
+        cmds.logger.error("Require Python>=3.8")
+        return EPERM
     return 0
 
 
