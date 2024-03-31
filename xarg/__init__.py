@@ -9,6 +9,9 @@ from .actuator import run_command
 
 from .parser import argp
 
+from .colorful import color
+from .colorful import Fore
+from .colorful import Back
 from .safefile import safile
 from .scanner import scanner
 
