@@ -11,13 +11,13 @@ import unittest
 
 import mock
 
-from xarg import __version__
 from xarg import add_command
 from xarg import argp
 from xarg import commands
 from xarg import end_command
 from xarg import pre_command
 from xarg import run_command
+from xarg.attribute import __version__
 
 
 @add_command("debug", help="test logger level")
