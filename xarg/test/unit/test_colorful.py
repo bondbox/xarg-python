@@ -28,7 +28,7 @@ class test_safile(unittest.TestCase):
     def test_bold(self):
         text1 = color("unittest bold")
         text2 = color.bold(text1)
-        text1.style = Style.BRIGHT
+        text1.style = {Style.BRIGHT}
         commands().stdout(f"text1: {text1}")
         commands().stdout(f"text2: {text2}")
         self.assertEqual(str(text1), str(text2))
@@ -36,7 +36,7 @@ class test_safile(unittest.TestCase):
     def test_dim(self):
         text1 = color("unittest dim")
         text2 = color.dim(text1)
-        text1.style = Style.DIM
+        text1.style = {Style.DIM}
         commands().stdout(f"text1: {text1}")
         commands().stdout(f"text2: {text2}")
         self.assertEqual(str(text1), str(text2))
@@ -44,7 +44,7 @@ class test_safile(unittest.TestCase):
     def test_normal(self):
         text1 = color("unittest normal")
         text2 = color.normal(text1)
-        text1.style = Style.NORMAL
+        text1.style = {Style.NORMAL}
         commands().stdout(f"text1: {text1}")
         commands().stdout(f"text2: {text2}")
         self.assertEqual(str(text1), str(text2))

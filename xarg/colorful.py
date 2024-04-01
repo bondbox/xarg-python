@@ -1,7 +1,7 @@
 # coding:utf-8
 
-from typing import List
 from typing import Optional
+from typing import Set
 
 from colorama import Back
 from colorama import Fore
@@ -17,16 +17,22 @@ class color(str):
     def __init__(self, object: object):
         self.__background: Optional[str] = None
         self.__foreground: Optional[str] = None
-        self.__style: Optional[str] = None
+        self.__style: Set[str] = set()
         super().__init__()
 
     def __str__(self) -> str:
-        style_fore_back = [self.style, self.foreground, self.background]
-        items: List[str] = [i for i in style_fore_back if isinstance(i, str)]
-        if len(items) <= 0:
-            return self
-        items.extend([self, Style.RESET_ALL])
-        return "".join(items)
+        message: str = super().__str__()
+
+        if isinstance(self.foreground, str):
+            message = f"{self.foreground}{message}{Fore.RESET}"
+
+        if isinstance(self.background, str):
+            message = f"{self.background}{message}{Back.RESET}"
+
+        if len(self.style) > 0:
+            message = f"{''.join(self.style)}{message}{Style.RESET_ALL}"
+
+        return message
 
     @property
     def background(self) -> Optional[str]:
@@ -47,13 +53,17 @@ class color(str):
         self.__foreground = value
 
     @property
-    def style(self) -> Optional[str]:
+    def style(self) -> Set[str]:
         return self.__style
 
     @style.setter
-    def style(self, value: str):
-        assert isinstance(value, str), f"Unexpected type: {type(value)}"
+    def style(self, value: Set[str]):
+        assert isinstance(value, set), f"Unexpected type: {type(value)}"
         self.__style = value
+
+    def add_style(self, value: str):
+        assert isinstance(value, str), f"Unexpected type: {type(value)}"
+        self.__style.add(value)
 
     @classmethod
     def new_background(cls, object: object, value: str) -> "color":
@@ -68,22 +78,22 @@ class color(str):
         return colour
 
     @classmethod
-    def new_style(cls, object: object, value: str) -> "color":
+    def new_style(cls, object: object, value: Set[str]) -> "color":
         colour: color = color(object)
         colour.style = value
         return colour
 
     @classmethod
     def bold(cls, object: object):
-        return color.new_style(object, Style.BRIGHT)
+        return color.new_style(object, {Style.BRIGHT})
 
     @classmethod
     def dim(cls, object: object):
-        return color.new_style(object, Style.DIM)
+        return color.new_style(object, {Style.DIM})
 
     @classmethod
     def normal(cls, object: object):
-        return color.new_style(object, Style.NORMAL)
+        return color.new_style(object, {Style.NORMAL})
 
     @classmethod
     def black(cls, object: object):
