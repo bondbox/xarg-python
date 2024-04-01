@@ -13,13 +13,24 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 
+from colorlog import ColoredFormatter
+
 from .parser import argp
 from .util import singleton
 
 
+DEFAULT_LOG_FORMAT = "%(log_color)s%(message)s"
+DEFAULT_LOG_COLORS = {
+    "DEBUG": "black",
+    "INFO": "white",
+    "WARNING": "yellow",
+    "ERROR": "red",
+    "CRITICAL": "light_red",
+}
+
+
 class add_command:
-    '''
-    Define a new command-line node.
+    '''Define a new command-line node.
 
     For example:
 
@@ -127,8 +138,7 @@ class add_command:
 
 
 class run_command:
-    '''
-    Define the main callback function, and bind it to a node and subcommands.
+    '''Define the main callback function, and bind it to a node and subcommands.
 
     For example:
 
@@ -202,8 +212,7 @@ class run_command:
 
 
 class pre_command:
-    '''
-    Define prepare callback function, and bind it with main callback.
+    '''Define prepare callback function, and bind it with main callback.
 
     For example:
 
@@ -243,8 +252,7 @@ class pre_command:
 
 
 class end_command:
-    '''
-    Define purge callback function, and bind it with main callback.
+    '''Define purge callback function, and bind it with main callback.
 
     For example:
 
@@ -285,8 +293,7 @@ class end_command:
 
 @singleton
 class commands:
-    '''
-    Singleton command-line tool based on argparse.
+    '''Singleton command-line tool based on argparse.
 
     Define and bind all callback functions before calling run() or parse().
 
@@ -344,8 +351,7 @@ class commands:
 
     @property
     def root(self) -> Optional[add_command]:
-        '''
-        Root Command.
+        '''Root Command.
         '''
         return self.__root
 
@@ -356,8 +362,7 @@ class commands:
 
     @property
     def args(self) -> Namespace:
-        '''
-        Namespace after parse arguments.
+        '''Namespace after parse arguments.
         '''
         assert isinstance(self.__args, Namespace)
         return self.__args
@@ -369,8 +374,7 @@ class commands:
 
     @property
     def version(self) -> Optional[str]:
-        '''
-        Custom version for "-v" or "--version" output.
+        '''Custom version for "-v" or "--version" output.
         '''
         return self.__version
 
@@ -391,21 +395,18 @@ class commands:
 
     @property
     def logger(self) -> logging.Logger:
-        '''
-        Logger.
+        '''Logger.
         '''
         return logging.getLogger(self.prog)
 
     def stdout(self, context: Any):
-        '''
-        Output string to sys.stdout.
+        '''Output string to sys.stdout.
         '''
         sys.stdout.write(f"{context}\n")
         sys.stdout.flush()
 
     def stderr(self, context: Any):
-        '''
-        Output string to sys.stderr.
+        '''Output string to sys.stderr.
         '''
         sys.stderr.write(f"{context}\n")
         sys.stderr.flush()
@@ -487,16 +488,17 @@ class commands:
             if not isinstance(option, str):
                 return
 
-            DEFAULT_FMT = "%(asctime)s %(process)d %(threadName)s"\
-                " %(levelname)s %(funcName)s %(filename)s:%(lineno)s"\
+            DEFAULT_LOG_FMT = "%(log_color)s%(asctime)s"\
+                " %(process)d %(threadName)s %(levelname)s"\
+                " %(funcName)s %(filename)s:%(lineno)s"\
                 " %(message)s"
 
             group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group.add_argument(option,
                                type=str,
                                nargs="?",
-                               const=DEFAULT_FMT,
-                               default=None,
+                               const=DEFAULT_LOG_FMT,
+                               default=DEFAULT_LOG_FORMAT,
                                metavar="STRING",
                                dest="_log_format_",
                                help="Logger output format.")
@@ -537,12 +539,13 @@ class commands:
             level_name = args._log_level_str_.upper()
             self.logger.setLevel(logging._nameToLevel[level_name])
 
-        formatter = logging.Formatter(
-            fmt=args._log_format_ if hasattr(args, "_log_format_")
-            and isinstance(args._log_format_, str) else None,
-            datefmt=None)
-
         def addHandler(handler: logging.Handler):
+            formatter: logging.Formatter = ColoredFormatter(
+                fmt=args._log_format_ if hasattr(args, "_log_format_")
+                and isinstance(args._log_format_, str) else None,
+                datefmt=None,
+                log_colors=DEFAULT_LOG_COLORS,
+                no_color=isinstance(handler, logging.FileHandler))
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
 
@@ -581,8 +584,7 @@ class commands:
 
     def parse(self, root: Optional[add_command] = None,
               argv: Optional[Sequence[str]] = None, **kwargs) -> Namespace:
-        '''
-        Parse the command line.
+        '''Parse the command line.
         '''
         if root is None:
             root = self.root
@@ -605,8 +607,7 @@ class commands:
 
     def has_sub(self, root: add_command,
                 args: Optional[Namespace] = None) -> bool:
-        '''
-        If the root command node has any subcommand nodes, return true.
+        '''If the root command node has any subcommand nodes, return true.
 
         @param root: Command node
         @type root: add_command
@@ -678,8 +679,7 @@ class commands:
             root: Optional[add_command] = None,
             argv: Optional[Sequence[str]] = None,
             **kwargs) -> int:
-        '''
-        Parse and run the command line.
+        '''Parse and run the command line.
         '''
         if root is None:
             root = self.root

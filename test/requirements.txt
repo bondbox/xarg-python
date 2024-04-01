@@ -4,3 +4,4 @@ stestr>=2.0.0
 mock
 argcomplete
 colorama
+colorlog
