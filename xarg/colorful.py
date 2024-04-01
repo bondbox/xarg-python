@@ -16,11 +16,12 @@ class color(str):
     def __init__(self, object: object):
         self.__background: Optional[str] = None
         self.__foreground: Optional[str] = None
+        self.__style: Optional[str] = None
         super().__init__()
 
     def __str__(self) -> str:
-        fore_back = [self.foreground, self.background]
-        items: List[str] = [i for i in fore_back if isinstance(i, str)]
+        style_fore_back = [self.style, self.foreground, self.background]
+        items: List[str] = [i for i in style_fore_back if isinstance(i, str)]
         if len(items) <= 0:
             return self
         items.extend([self, Style.RESET_ALL])
@@ -34,7 +35,6 @@ class color(str):
     def background(self, value: str):
         assert isinstance(value, str), f"Unexpected type: {type(value)}"
         self.__background = value
-        return self
 
     @property
     def foreground(self) -> Optional[str]:
@@ -44,7 +44,15 @@ class color(str):
     def foreground(self, value: str):
         assert isinstance(value, str), f"Unexpected type: {type(value)}"
         self.__foreground = value
-        return self
+
+    @property
+    def style(self) -> Optional[str]:
+        return self.__style
+
+    @style.setter
+    def style(self, value: str):
+        assert isinstance(value, str), f"Unexpected type: {type(value)}"
+        self.__style = value
 
     @classmethod
     def new_background(cls, object: object, value: str) -> "color":
@@ -57,6 +65,24 @@ class color(str):
         colour: color = color(object)
         colour.foreground = value
         return colour
+
+    @classmethod
+    def new_style(cls, object: object, value: str) -> "color":
+        colour: color = color(object)
+        colour.style = value
+        return colour
+
+    @classmethod
+    def bright(cls, object: object):
+        return color.new_style(object, Style.BRIGHT)
+
+    @classmethod
+    def dim(cls, object: object):
+        return color.new_style(object, Style.DIM)
+
+    @classmethod
+    def normal(cls, object: object):
+        return color.new_style(object, Style.NORMAL)
 
     @classmethod
     def black(cls, object: object):
