@@ -3,6 +3,15 @@ MAKEFLAGS += --always-make
 all: build install
 
 
+clean-cover:
+	rm -rf cover .coverage
+
+clean-tox: clean-cover
+	rm -rf .stestr .tox
+
+clean: build-clean clean-tox
+
+
 upgrade-xpip.build:
 	pip3 install -i https://pypi.org/simple --upgrade xpip.build
 
@@ -17,8 +26,11 @@ upload:
 	xpip-upload --config-file .pypirc dist/*
 
 
-build:
-	xpip-build setup --clean --all
+build-clean:
+	xpip-build --debug setup --clean
+
+build: build-clean
+	xpip-build --debug setup --all
 
 
 install:
