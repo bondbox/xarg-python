@@ -9,7 +9,8 @@ from colorama import Style
 
 
 class color(str):
-    '''
+    '''Colorful terminal text
+
     Reference: https://en.wikipedia.org/wiki/ANSI_escape_code
     '''
 
@@ -73,7 +74,7 @@ class color(str):
         return colour
 
     @classmethod
-    def bright(cls, object: object):
+    def bold(cls, object: object):
         return color.new_style(object, Style.BRIGHT)
 
     @classmethod

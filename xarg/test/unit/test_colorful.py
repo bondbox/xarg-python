@@ -25,9 +25,9 @@ class test_safile(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_bright(self):
-        text1 = color("unittest bright")
-        text2 = color.bright(text1)
+    def test_bold(self):
+        text1 = color("unittest bold")
+        text2 = color.bold(text1)
         text1.style = Style.BRIGHT
         commands().stdout(f"text1: {text1}")
         commands().stdout(f"text2: {text2}")
