@@ -4,6 +4,7 @@ from argparse import Namespace
 from errno import EINTR
 from errno import ENOENT
 import logging
+import os
 import sys
 from typing import Any
 from typing import Callable
@@ -17,7 +18,6 @@ from colorlog import ColoredFormatter
 
 from .parser import argp
 from .util import singleton
-
 
 DEFAULT_LOG_FORMAT = "%(log_color)s%(message)s"
 DEFAULT_LOG_COLORS = {
@@ -554,7 +554,11 @@ class commands:
 
         if hasattr(args, "_log_files_"):
             for filename in args._log_files_:
-                assert isinstance(filename, str)
+                assert isinstance(filename, str), \
+                    f"Unexpected type: {type(filename)}"
+                dirname: str = os.path.dirname(filename)
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
                 addHandler(logging.FileHandler(filename))
 
     def __add_parser(self, _map: Dict[add_command, argp],
