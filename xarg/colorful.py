@@ -2,10 +2,44 @@
 
 from typing import Optional
 from typing import Set
+from typing import Union
 
 from colorama import Back
 from colorama import Fore
-from colorama import Style
+from colorama.ansi import AnsiStyle
+from colorama.ansi import code_to_chars
+
+
+class AnsiXStyle(AnsiStyle):
+    ITALIC = 3
+    UNDERLINE = 4
+    SLOWBLINK = 5
+    RAPIDBLINK = 6
+    INVERT = 7
+    HIDE = 8
+    STRIKETHROUGH = 9
+    DOUBLYUNDERLINED = 21
+    RESET_ITALIC = 23
+    RESET_UNDERLINE = 24
+    RESET_BLINK = 25
+    RESET_INVERT = 27
+    REVEAL = 28
+    RESET_STRIKETHROUGH = 29
+
+
+Style = AnsiXStyle()
+StyleType = Union[str, int]
+SytleReset = {
+    Style.BRIGHT: Style.NORMAL,
+    Style.DIM: Style.NORMAL,
+    Style.ITALIC: Style.RESET_ITALIC,
+    Style.UNDERLINE: Style.RESET_UNDERLINE,
+    Style.SLOWBLINK: Style.RESET_BLINK,
+    Style.RAPIDBLINK: Style.RESET_BLINK,
+    Style.INVERT: Style.RESET_INVERT,
+    Style.STRIKETHROUGH: Style.RESET_STRIKETHROUGH,
+    Style.DOUBLYUNDERLINED: Style.RESET_UNDERLINE,
+}
 
 
 class color(str):
@@ -18,7 +52,6 @@ class color(str):
         self.__background: Optional[str] = None
         self.__foreground: Optional[str] = None
         self.__style: Set[str] = set()
-        self.__reset: bool = True
         super().__init__()
 
     def __str__(self) -> str:
@@ -32,9 +65,8 @@ class color(str):
 
         if len(self.style) > 0:
             for style in self.style:
-                message = f"{style}{message}"
-            if self.reset:
-                message = f"{message}{Style.RESET_ALL}"
+                reset_style = SytleReset.get(style, Style.RESET_ALL)
+                message = f"{style}{message}{reset_style}"
         return message
 
     @property
@@ -60,22 +92,17 @@ class color(str):
         return self.__style
 
     @style.setter
-    def style(self, value: Set[str]):
+    def style(self, value: Set[StyleType]):
         assert isinstance(value, set), f"Unexpected type: {type(value)}"
-        self.__style = value
+        _value: Set[str] = {code_to_chars(v) if isinstance(v, int) else v
+                            for v in value}
+        self.__style = _value
 
-    @property
-    def reset_style(self) -> bool:
-        return self.__reset
-
-    @reset_style.setter
-    def reset_style(self, value: bool):
-        assert isinstance(value, bool), f"Unexpected type: {type(value)}"
-        self.__reset = value
-
-    def add_style(self, value: str):
-        assert isinstance(value, str), f"Unexpected type: {type(value)}"
-        self.__style.add(value)
+    def add_style(self, value: StyleType) -> "color":
+        assert isinstance(value, StyleType), f"Unexpected type: {type(value)}"
+        _value: str = code_to_chars(value) if isinstance(value, int) else value
+        self.__style.add(_value)
+        return self
 
     @classmethod
     def new_background(cls, object: object, value: str) -> "color":
@@ -90,7 +117,7 @@ class color(str):
         return colour
 
     @classmethod
-    def new_style(cls, object: object, value: Set[str]) -> "color":
+    def new_style(cls, object: object, value: Set[StyleType]) -> "color":
         colour: color = color(object)
         colour.style = value
         return colour
@@ -108,8 +135,44 @@ class color(str):
         return color.new_style(object, {Style.DIM})
 
     @classmethod
+    def italic(cls, object: object) -> "color":
+        return color.new_style(object, {Style.ITALIC})
+
+    @classmethod
+    def underline(cls, object: object) -> "color":
+        return color.new_style(object, {Style.UNDERLINE})
+
+    @classmethod
+    def slow_blink(cls, object: object) -> "color":
+        return color.new_style(object, {Style.SLOWBLINK})
+
+    @classmethod
+    def rapid_blink(cls, object: object) -> "color":
+        return color.new_style(object, {Style.RAPIDBLINK})
+
+    @classmethod
+    def invert(cls, object: object) -> "color":
+        return color.new_style(object, {Style.INVERT})
+
+    @classmethod
+    def hide(cls, object: object) -> "color":
+        return color.new_style(object, {Style.HIDE})
+
+    @classmethod
+    def strikethrough(cls, object: object) -> "color":
+        return color.new_style(object, {Style.STRIKETHROUGH})
+
+    @classmethod
+    def doubly_underlined(cls, object: object) -> "color":
+        return color.new_style(object, {Style.DOUBLYUNDERLINED})
+
+    @classmethod
     def normal(cls, object: object) -> "color":
         return color.new_style(object, {Style.NORMAL})
+
+    @classmethod
+    def reveal(cls, object: object) -> "color":
+        return color.new_style(object, {Style.REVEAL})
 
     @classmethod
     def black(cls, object: object) -> "color":
@@ -176,65 +239,65 @@ class color(str):
         return color.new_foreground(object, Fore.LIGHTWHITE_EX)
 
     @classmethod
-    def back_black(cls, object: object) -> "color":
+    def black_back(cls, object: object) -> "color":
         return color.new_background(object, Back.BLACK)
 
     @classmethod
-    def back_red(cls, object: object) -> "color":
+    def red_back(cls, object: object) -> "color":
         return color.new_background(object, Back.RED)
 
     @classmethod
-    def back_green(cls, object: object) -> "color":
+    def green_back(cls, object: object) -> "color":
         return color.new_background(object, Back.GREEN)
 
     @classmethod
-    def back_yellow(cls, object: object) -> "color":
+    def yellow_back(cls, object: object) -> "color":
         return color.new_background(object, Back.YELLOW)
 
     @classmethod
-    def back_blue(cls, object: object) -> "color":
+    def blue_back(cls, object: object) -> "color":
         return color.new_background(object, Back.BLUE)
 
     @classmethod
-    def back_magenta(cls, object: object) -> "color":
+    def magenta_back(cls, object: object) -> "color":
         return color.new_background(object, Back.MAGENTA)
 
     @classmethod
-    def back_cyan(cls, object: object) -> "color":
+    def cyan_back(cls, object: object) -> "color":
         return color.new_background(object, Back.CYAN)
 
     @classmethod
-    def back_white(cls, object: object) -> "color":
+    def white_back(cls, object: object) -> "color":
         return color.new_background(object, Back.WHITE)
 
     @classmethod
-    def back_lightblack(cls, object: object) -> "color":
+    def lightblack_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTBLACK_EX)
 
     @classmethod
-    def back_lightred(cls, object: object) -> "color":
+    def lightred_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTRED_EX)
 
     @classmethod
-    def back_lightgreen(cls, object: object) -> "color":
+    def lightgreen_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTGREEN_EX)
 
     @classmethod
-    def back_lightyellow(cls, object: object) -> "color":
+    def lightyellow_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTYELLOW_EX)
 
     @classmethod
-    def back_lightblue(cls, object: object) -> "color":
+    def lightblue_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTBLUE_EX)
 
     @classmethod
-    def back_lightmagenta(cls, object: object) -> "color":
+    def lightmagenta_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTMAGENTA_EX)
 
     @classmethod
-    def back_lightcyan(cls, object: object) -> "color":
+    def lightcyan_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTCYAN_EX)
 
     @classmethod
-    def back_lightwhite(cls, object: object) -> "color":
+    def lightwhite_back(cls, object: object) -> "color":
         return color.new_background(object, Back.LIGHTWHITE_EX)
