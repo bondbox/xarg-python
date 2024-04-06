@@ -1,7 +1,8 @@
 # coding:utf-8
 
-from .actuator import Namespace
+from .actuator import cmds
 from .actuator import commands
+from .actuator import Namespace
 from .actuator import add_command
 from .actuator import end_command
 from .actuator import pre_command

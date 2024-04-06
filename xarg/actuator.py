@@ -304,7 +304,7 @@ class commands:
 
     >>> from xarg import add_command\n
     >>> from xarg import argp\n
-    >>> from xarg import commands\n
+    >>> from xarg import cmds\n
     >>> from xarg import end_command\n
     >>> from xarg import pre_command\n
     >>> from xarg import run_command\n
@@ -326,7 +326,7 @@ class commands:
     >>>     return 0\n
 
     >>> def main(argv: Optional[Sequence[str]] = None) -> int:\n
-    >>>     return commands().run(\n
+    >>>     return cmds.run(\n
     >>>         root=cmd,\n
     >>>         argv=argv,\n
     >>>         prog="xarg-example",\n
@@ -712,3 +712,6 @@ class commands:
         except BaseException:
             self.logger.exception("Something went wrong:")
             return 10000
+
+
+cmds: commands = commands()
