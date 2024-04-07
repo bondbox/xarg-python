@@ -23,12 +23,16 @@ from .util import singleton
 
 DEFAULT_LOG_FORMAT = "%(log_color)s%(message)s"
 DEFAULT_LOG_COLORS = {
-    "DEBUG": "black",
-    "INFO": "white",
-    "WARNING": "yellow",
+    "FATAL": "light_red",
     "ERROR": "red",
-    "CRITICAL": "light_red",
+    "WARN": "yellow",
+    "INFO": "white",
+    "DEBUG": "black",
 }
+
+
+def get_allowed_log_level_name() -> List[str]:
+    return [k.lower() for k in DEFAULT_LOG_COLORS.keys()]
 
 
 class log_once_filter(logging.Filter):
@@ -470,10 +474,6 @@ class commands:
             return None
 
         def add_optional_level():
-
-            def get_all_level_name() -> List[str]:
-                return ["fatal", "error", "warn", "info", "debug"]
-
             group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group_level = group.add_mutually_exclusive_group()
 
@@ -485,11 +485,11 @@ class commands:
                     nargs="?",
                     const="info",
                     default="info",
-                    choices=get_all_level_name(),
+                    choices=get_allowed_log_level_name(),
                     dest="_log_level_str_",
                     help="Logger output level, default info.")
 
-            for level in get_all_level_name():
+            for level in get_allowed_log_level_name():
                 options = []
                 if isinstance(filter_optional_name(f"-{level[0]}"), str):
                     options.append(f"-{level[0]}")
