@@ -4,8 +4,10 @@ from argparse import Namespace
 from errno import EINTR
 from errno import ENOENT
 import logging
+from logging import LogRecord
 import os
 import sys
+from time import time
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -27,6 +29,35 @@ DEFAULT_LOG_COLORS = {
     "ERROR": "red",
     "CRITICAL": "light_red",
 }
+
+
+class log_once_filter(logging.Filter):
+    def __init__(self, name: str = "log_once_filter",
+                 max_interval_seconds: int = 60):
+        self.__max_interval: int = max(3, max_interval_seconds)
+        self.__timestamp: float = time()
+        self.__message = None
+        super().__init__(name)
+
+    def filter(self, record: LogRecord) -> bool:
+        current_message = (record.msg, record.args)
+        if current_message != self.__message or self.timeout:
+            self.__message = current_message
+            self.__timestamp = time()
+            return True
+        return False
+
+    @property
+    def max_interval_seconds(self) -> int:
+        return self.__max_interval
+
+    @property
+    def interval_seconds(self) -> float:
+        return time() - self.__timestamp
+
+    @property
+    def timeout(self) -> bool:
+        return self.interval_seconds > self.max_interval_seconds
 
 
 class add_command:
@@ -341,6 +372,7 @@ class commands:
         self.__args: Namespace = Namespace()
         self.__version: Optional[str] = None
         self.__enable_logger: bool = True
+        self.__enable_log_once: bool = True
 
     @property
     def prog(self) -> str:
@@ -389,6 +421,15 @@ class commands:
     def enable_logger(self, value: bool):
         assert isinstance(value, bool)
         self.__enable_logger = value
+
+    @property
+    def enable_log_once(self) -> bool:
+        return self.__enable_log_once
+
+    @enable_log_once.setter
+    def enable_log_once(self, value: bool):
+        assert isinstance(value, bool)
+        self.__enable_log_once = value
 
     @property
     def logger(self) -> logging.Logger:
@@ -529,6 +570,9 @@ class commands:
     def __parse_logger(self, args: Namespace):
         if not self.enable_logger:
             return
+
+        if self.enable_log_once:
+            self.logger.addFilter(log_once_filter())
 
         # save debug level to local variable
         if hasattr(args, "_log_level_str_") and\
