@@ -15,6 +15,7 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 
+from .attribute import __prog_name__
 from .logger import log
 from .logger import once_filter as log_once_filter
 from .parser import argp
@@ -328,7 +329,7 @@ class commands:
     LOGGER_ARGUMENT_GROUP = "logger options"
 
     def __init__(self):
-        self.__prog: str = "xarg"
+        self.__prog: str = __prog_name__
         self.__root: Optional[add_command] = None
         self.__args: Namespace = Namespace()
         self.__version: Optional[str] = None
