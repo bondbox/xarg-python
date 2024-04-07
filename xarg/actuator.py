@@ -335,15 +335,12 @@ class commands:
 
     LOGGER_ARGUMENT_GROUP = "logger options"
 
-    def __init__(self, version: Optional[str] = None,
-                 enable_logger: bool = True):
-        assert isinstance(version, str) or version is None
-        assert isinstance(enable_logger, bool)
+    def __init__(self):
         self.__prog: str = "xarg"
         self.__root: Optional[add_command] = None
         self.__args: Namespace = Namespace()
-        self.__version: Optional[str] = version
-        self.__enable_logger: bool = enable_logger
+        self.__version: Optional[str] = None
+        self.__enable_logger: bool = True
 
     @property
     def prog(self) -> str:
