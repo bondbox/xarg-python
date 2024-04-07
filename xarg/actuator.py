@@ -4,64 +4,21 @@ from argparse import Namespace
 from errno import EINTR
 from errno import ENOENT
 import logging
-from logging import LogRecord
-import os
+from logging import Logger
 import sys
-from time import time
 from typing import Any
 from typing import Callable
 from typing import Dict
+from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
 
-from colorlog import ColoredFormatter
-
+from .logger import log
+from .logger import once_filter as log_once_filter
 from .parser import argp
 from .util import singleton
-
-DEFAULT_LOG_FORMAT = "%(log_color)s%(message)s"
-DEFAULT_LOG_COLORS = {
-    "FATAL": "light_red",
-    "ERROR": "red",
-    "WARN": "yellow",
-    "INFO": "white",
-    "DEBUG": "black",
-}
-
-
-def get_allowed_log_level_name() -> List[str]:
-    return [k.lower() for k in DEFAULT_LOG_COLORS.keys()]
-
-
-class log_once_filter(logging.Filter):
-    def __init__(self, name: str = "log_once_filter",
-                 max_interval_seconds: int = 60):
-        self.__max_interval: int = max(3, max_interval_seconds)
-        self.__timestamp: float = time()
-        self.__message = None
-        super().__init__(name)
-
-    def filter(self, record: LogRecord) -> bool:
-        current_message = (record.msg, record.args)
-        if current_message != self.__message or self.timeout:
-            self.__message = current_message
-            self.__timestamp = time()
-            return True
-        return False
-
-    @property
-    def max_interval_seconds(self) -> int:
-        return self.__max_interval
-
-    @property
-    def interval_seconds(self) -> float:
-        return time() - self.__timestamp
-
-    @property
-    def timeout(self) -> bool:
-        return self.interval_seconds > self.max_interval_seconds
 
 
 class add_command:
@@ -375,8 +332,7 @@ class commands:
         self.__root: Optional[add_command] = None
         self.__args: Namespace = Namespace()
         self.__version: Optional[str] = None
-        self.__enable_logger: bool = True
-        self.__enable_log_once: bool = True
+        self.__logging: log = log(True)
 
     @property
     def prog(self) -> str:
@@ -417,29 +373,36 @@ class commands:
         _version = value.strip()
         self.__version = _version
 
+    def initiate_logging(self, level: Optional[str] = None,
+                         handlers: Optional[Iterable[logging.Handler]] = None,
+                         filters: Optional[Iterable[logging.Filter]] = None):
+        assert self.logging.enabled is True
+        logger: logging.Logger = self.logger
+
+        if isinstance(level, str):
+            logger.setLevel(logging._nameToLevel[level.upper()])
+
+        if filters is None:
+            filters = [log_once_filter()]
+
+        for filter in filters:
+            logger.addFilter(filter)
+
+        if handlers is None:
+            handlers = [self.logging.new_stream_handler(stream=sys.stdout)]
+
+        for handler in handlers:
+            logger.addHandler(handler)
+
     @property
-    def enable_logger(self) -> bool:
-        return self.__enable_logger
-
-    @enable_logger.setter
-    def enable_logger(self, value: bool):
-        assert isinstance(value, bool)
-        self.__enable_logger = value
+    def logging(self) -> log:
+        return self.__logging
 
     @property
-    def enable_log_once(self) -> bool:
-        return self.__enable_log_once
-
-    @enable_log_once.setter
-    def enable_log_once(self, value: bool):
-        assert isinstance(value, bool)
-        self.__enable_log_once = value
-
-    @property
-    def logger(self) -> logging.Logger:
+    def logger(self) -> Logger:
         '''Logger.
         '''
-        return logging.getLogger(self.prog)
+        return self.logging.get_logger(self.prog)
 
     def stdout(self, context: Any):
         '''Output string to sys.stdout.
@@ -485,11 +448,11 @@ class commands:
                     nargs="?",
                     const="info",
                     default="info",
-                    choices=get_allowed_log_level_name(),
+                    choices=self.logging.ALLOWED_LOG_LEVELS,
                     dest="_log_level_str_",
                     help="Logger output level, default info.")
 
-            for level in get_allowed_log_level_name():
+            for level in self.logging.ALLOWED_LOG_LEVELS:
                 options = []
                 if isinstance(filter_optional_name(f"-{level[0]}"), str):
                     options.append(f"-{level[0]}")
@@ -536,7 +499,7 @@ class commands:
                                type=str,
                                nargs="?",
                                const=DEFAULT_LOG_FMT,
-                               default=DEFAULT_LOG_FORMAT,
+                               default=self.logging.DEFAULT_LOG_FORMAT,
                                metavar="STRING",
                                dest="_log_format_",
                                help="Logger output format.")
@@ -561,46 +524,33 @@ class commands:
                                        dest="_log_console_",
                                        help="Logger output to stderr.")
 
-        if self.enable_logger:
+        if self.logging.enabled:
             add_optional_level()
             add_optional_stream()
             add_optional_format()
             add_optional_console()
 
     def __parse_logger(self, args: Namespace):
-        if not self.enable_logger:
+        if not self.logging.enabled:
             return
 
-        if self.enable_log_once:
-            self.logger.addFilter(log_once_filter())
+        level_name: Optional[str] = args._log_level_str_.upper() if hasattr(
+            args, "_log_level_str_") and isinstance(
+            args._log_level_str_, str) else None
+        fmt: Optional[str] = args._log_format_ if hasattr(
+            args, "_log_format_") and isinstance(
+            args._log_format_, str) else None
 
-        # save debug level to local variable
-        if hasattr(args, "_log_level_str_") and\
-           isinstance(args._log_level_str_, str):
-            level_name = args._log_level_str_.upper()
-            self.logger.setLevel(logging._nameToLevel[level_name])
-
-        def addHandler(handler: logging.Handler):
-            formatter: logging.Formatter = ColoredFormatter(
-                fmt=args._log_format_ if hasattr(args, "_log_format_")
-                and isinstance(args._log_format_, str) else None,
-                datefmt=None,
-                log_colors=DEFAULT_LOG_COLORS,
-                no_color=isinstance(handler, logging.FileHandler))
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-
+        handlers: List[logging.Handler] = []
         if hasattr(args, "_log_console_") and args._log_console_ is not None:
-            addHandler(logging.StreamHandler(stream=args._log_console_))
-
+            handlers.append(
+                log.new_stream_handler(stream=args._log_console_, fmt=fmt))
         if hasattr(args, "_log_files_"):
             for filename in args._log_files_:
-                assert isinstance(filename, str), \
-                    f"Unexpected type: {type(filename)}"
-                dirname: str = os.path.dirname(filename)
-                if not os.path.exists(dirname):
-                    os.makedirs(dirname)
-                addHandler(logging.FileHandler(filename))
+                handlers.append(
+                    log.new_file_handler(filename=filename, fmt=fmt))
+
+        self.initiate_logging(level=level_name, handlers=handlers)
 
     def __add_parser(self, _map: Dict[add_command, argp],
                      arg_root: argp, cmd_root: add_command, **kwargs):
