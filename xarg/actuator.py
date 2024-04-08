@@ -430,8 +430,8 @@ class commands(log):
                     option_level,
                     type=str,
                     nargs="?",
-                    const="info",
-                    default="info",
+                    const=self.LOG_LEVEL_INFO.lower(),
+                    default=self.LOG_LEVEL_INFO.lower(),
                     choices=self.ALLOWED_LOG_LEVELS,
                     dest="_log_level_str_",
                     help="Logger output level, default info.")

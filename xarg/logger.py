@@ -46,16 +46,22 @@ class once_filter(logging.Filter):
 
 
 class log:
+    LOG_LEVEL_FATAL: str = "FATAL"
+    LOG_LEVEL_ERROR: str = "ERROR"
+    LOG_LEVEL_WARN: str = "WARN"
+    LOG_LEVEL_INFO: str = "INFO"
+    LOG_LEVEL_DEBUG: str = "DEBUG"
     DEFAULT_LOG_FORMAT: str = "%(log_color)s%(message)s"
     DEFAULT_LOG_COLORS: LogColors = {
-        "FATAL": "light_red",
-        "ERROR": "red",
-        "WARN": "yellow",
-        "INFO": "white",
-        "DEBUG": "black",
+        LOG_LEVEL_FATAL: "light_red",
+        LOG_LEVEL_ERROR: "red",
+        LOG_LEVEL_WARN: "yellow",
+        LOG_LEVEL_INFO: "white",
+        LOG_LEVEL_DEBUG: "black",
     }
     ALLOWED_LOG_LEVELS: List[str] = [
-        k.lower() for k in DEFAULT_LOG_COLORS.keys()]
+        k.lower() for k in DEFAULT_LOG_COLORS.keys()
+    ]
 
     def __init__(self):
         self.__initiated_names: Set[str] = set()
