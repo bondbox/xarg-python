@@ -7,6 +7,7 @@ from time import time
 from typing import Iterable
 from typing import List
 from typing import Optional
+from typing import Set
 from typing import TextIO
 
 from colorlog import ColoredFormatter
@@ -16,7 +17,7 @@ from .attribute import __prog_name__ as prog
 
 
 class once_filter(logging.Filter):
-    def __init__(self, name: str = "log_once_filter",
+    def __init__(self, name: str = "logging_once_filter",
                  max_interval_seconds: int = 60):
         self.__max_interval: int = max(3, max_interval_seconds)
         self.__timestamp: float = time()
@@ -56,16 +57,37 @@ class log:
     ALLOWED_LOG_LEVELS: List[str] = [
         k.lower() for k in DEFAULT_LOG_COLORS.keys()]
 
-    def __init__(self, enable: bool = True):
-        self.__enabled: bool = enable
+    def __init__(self):
+        self.__initiated_names: Set[str] = set()
 
-    @property
-    def enabled(self) -> bool:
-        return self.__enabled
+    def logger_initiated(self, name: str) -> bool:
+        return name in self.__initiated_names
 
     def get_logger(self, name: Optional[str] = None) -> logging.Logger:
-        assert self.enabled is True
         return logging.getLogger(name if isinstance(name, str) else prog)
+
+    def initiate_logger(self, logger: logging.Logger,
+                        level: Optional[str] = None,
+                        handlers: Optional[Iterable[logging.Handler]] = None,
+                        filters: Optional[Iterable[logging.Filter]] = None):
+        assert not self.logger_initiated(logger.name)
+
+        if isinstance(level, str):
+            logger.setLevel(logging._nameToLevel[level.upper()])
+
+        if filters is None:
+            filters = [once_filter()]
+
+        for filter in filters:
+            logger.addFilter(filter)
+
+        if handlers is None:
+            handlers = [self.new_stream_handler(stream=sys.stdout)]
+
+        for handler in handlers:
+            logger.addHandler(handler)
+
+        self.__initiated_names.add(logger.name)
 
     @classmethod
     def new_stream_handler(cls, stream: Optional[TextIO] = None,

@@ -9,7 +9,6 @@ import sys
 from typing import Any
 from typing import Callable
 from typing import Dict
-from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Sequence
@@ -17,7 +16,6 @@ from typing import Tuple
 
 from .attribute import __prog_name__
 from .logger import log
-from .logger import once_filter as log_once_filter
 from .parser import argp
 from .util import singleton
 
@@ -285,7 +283,7 @@ class end_command:
 
 
 @singleton
-class commands:
+class commands(log):
     '''Singleton command-line tool based on argparse.
 
     Define and bind all callback functions before calling run() or parse().
@@ -297,7 +295,7 @@ class commands:
 
     >>> from xarg import add_command\n
     >>> from xarg import argp\n
-    >>> from xarg import cmds\n
+    >>> from xarg import commands\n
     >>> from xarg import end_command\n
     >>> from xarg import pre_command\n
     >>> from xarg import run_command\n
@@ -319,7 +317,7 @@ class commands:
     >>>     return 0\n
 
     >>> def main(argv: Optional[Sequence[str]] = None) -> int:\n
-    >>>     return cmds.run(\n
+    >>>     return commands().run(\n
     >>>         root=cmd,\n
     >>>         argv=argv,\n
     >>>         prog="xarg-example",\n
@@ -333,7 +331,8 @@ class commands:
         self.__root: Optional[add_command] = None
         self.__args: Namespace = Namespace()
         self.__version: Optional[str] = None
-        self.__logging: log = log(True)
+        self.__enabled_logger: bool = True
+        super().__init__()
 
     @property
     def prog(self) -> str:
@@ -374,36 +373,20 @@ class commands:
         _version = value.strip()
         self.__version = _version
 
-    def initiate_logging(self, level: Optional[str] = None,
-                         handlers: Optional[Iterable[logging.Handler]] = None,
-                         filters: Optional[Iterable[logging.Filter]] = None):
-        assert self.logging.enabled is True
-        logger: logging.Logger = self.logger
-
-        if isinstance(level, str):
-            logger.setLevel(logging._nameToLevel[level.upper()])
-
-        if filters is None:
-            filters = [log_once_filter()]
-
-        for filter in filters:
-            logger.addFilter(filter)
-
-        if handlers is None:
-            handlers = [self.logging.new_stream_handler(stream=sys.stdout)]
-
-        for handler in handlers:
-            logger.addHandler(handler)
-
     @property
-    def logging(self) -> log:
-        return self.__logging
+    def enabled_logger(self) -> bool:
+        return self.__enabled_logger
+
+    @enabled_logger.setter
+    def enabled_logger(self, value: bool):
+        assert isinstance(value, bool)
+        self.__enabled_logger = value
 
     @property
     def logger(self) -> Logger:
         '''Logger.
         '''
-        return self.logging.get_logger(self.prog)
+        return self.get_logger(self.prog)
 
     def stdout(self, context: Any):
         '''Output string to sys.stdout.
@@ -449,11 +432,11 @@ class commands:
                     nargs="?",
                     const="info",
                     default="info",
-                    choices=self.logging.ALLOWED_LOG_LEVELS,
+                    choices=self.ALLOWED_LOG_LEVELS,
                     dest="_log_level_str_",
                     help="Logger output level, default info.")
 
-            for level in self.logging.ALLOWED_LOG_LEVELS:
+            for level in self.ALLOWED_LOG_LEVELS:
                 options = []
                 if isinstance(filter_optional_name(f"-{level[0]}"), str):
                     options.append(f"-{level[0]}")
@@ -500,7 +483,7 @@ class commands:
                                type=str,
                                nargs="?",
                                const=DEFAULT_LOG_FMT,
-                               default=self.logging.DEFAULT_LOG_FORMAT,
+                               default=self.DEFAULT_LOG_FORMAT,
                                metavar="STRING",
                                dest="_log_format_",
                                help="Logger output format.")
@@ -525,14 +508,14 @@ class commands:
                                        dest="_log_console_",
                                        help="Logger output to stderr.")
 
-        if self.logging.enabled:
+        if self.enabled_logger:
             add_optional_level()
             add_optional_stream()
             add_optional_format()
             add_optional_console()
 
     def __parse_logger(self, args: Namespace):
-        if not self.logging.enabled:
+        if not self.enabled_logger:
             return
 
         level_name: Optional[str] = args._log_level_str_.upper() if hasattr(
@@ -550,8 +533,7 @@ class commands:
             for filename in args._log_files_:
                 handlers.append(
                     log.new_file_handler(filename=filename, fmt=fmt))
-
-        self.initiate_logging(level=level_name, handlers=handlers)
+        self.initiate_logger(self.logger, level=level_name, handlers=handlers)
 
     def __add_parser(self, _map: Dict[add_command, argp],
                      arg_root: argp, cmd_root: add_command, **kwargs):
