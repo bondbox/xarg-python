@@ -1,5 +1,6 @@
 # coding:utf-8
 
+from enum import Enum
 import logging
 import os
 import sys
@@ -46,22 +47,27 @@ class once_filter(logging.Filter):
 
 
 class log:
-    LOG_LEVEL_FATAL: str = "FATAL"
-    LOG_LEVEL_ERROR: str = "ERROR"
-    LOG_LEVEL_WARN: str = "WARN"
-    LOG_LEVEL_INFO: str = "INFO"
-    LOG_LEVEL_DEBUG: str = "DEBUG"
+    class LOG_LEVELS(Enum):
+        CRITICAL = "fatal"
+        ERROR = "error"
+        WARNING = "warn"
+        INFO = "info"
+        DEBUG = "debug"
+    ALLOWED_LOG_LEVELS: List[str] = [
+        LOG_LEVELS.CRITICAL.value,
+        LOG_LEVELS.ERROR.value,
+        LOG_LEVELS.WARNING.value,
+        LOG_LEVELS.INFO.value,
+        LOG_LEVELS.DEBUG.value,
+    ]
     DEFAULT_LOG_FORMAT: str = "%(log_color)s%(message)s"
     DEFAULT_LOG_COLORS: LogColors = {
-        LOG_LEVEL_FATAL: "light_red",
-        LOG_LEVEL_ERROR: "red",
-        LOG_LEVEL_WARN: "yellow",
-        LOG_LEVEL_INFO: "white",
-        LOG_LEVEL_DEBUG: "black",
+        LOG_LEVELS.CRITICAL.name: "light_red",
+        LOG_LEVELS.ERROR.name: "red",
+        LOG_LEVELS.WARNING.name: "yellow",
+        LOG_LEVELS.INFO.name: "white",
+        LOG_LEVELS.DEBUG.name: "black",
     }
-    ALLOWED_LOG_LEVELS: List[str] = [
-        k.lower() for k in DEFAULT_LOG_COLORS.keys()
-    ]
 
     def __init__(self):
         self.__initiated_names: Set[str] = set()
