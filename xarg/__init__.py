@@ -16,6 +16,11 @@ from .colorful import Fore
 from .colorful import Back
 from .safefile import safile
 from .scanner import scanner
+from .sheet import form
+from .sheet import tabulate
+from .sheet import xls_reader
+from .sheet import xls_writer
+from .sheet import xlsx
 
 from .util import chdir
 from .util import singleton
