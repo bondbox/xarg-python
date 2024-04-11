@@ -18,47 +18,53 @@ from wcwidth import wcswidth
 import xlrd
 import xlwt
 
-KT = TypeVar("KT")  # Title type.
-CT = TypeVar("CT")  # Value type.
+HT = TypeVar("HT")  # head type.
+CT = TypeVar("CT")  # cell type.
 
 
-class form(Generic[KT, CT]):
+class form(Generic[HT, CT]):
     """Custom table
     """
 
-    def __init__(self, name: str, title: Iterable[KT]):
-        self.__title: Tuple[KT, ...] = tuple(i for i in title)
-        self.__datas: List[Tuple[CT, ...]] = list()
+    def __init__(self, name: str, header: Iterable[HT] = []):
+        self.header = header
         self.__name: str = name
+        self.__rows: List[Tuple[CT, ...]] = list()
 
     def __iter__(self) -> Iterator[Tuple[CT, ...]]:
-        return iter(self.__datas)
+        return iter(self.__rows)
 
     def __len__(self) -> int:
-        return len(self.__datas)
+        return len(self.__rows)
 
     def __getitem__(self, index: int) -> Tuple[CT, ...]:
-        return self.__datas[index]
+        return self.__rows[index]
 
     @property
     def name(self) -> str:
-        """sheet name
+        """table name
         """
         return self.__name
 
     @property
-    def title(self) -> Tuple[KT, ...]:
-        """title line
+    def header(self) -> Tuple[HT, ...]:
+        """table header(title line)
         """
-        return self.__title
+        return self.__header
+
+    @header.setter
+    def header(self, value: Iterable[HT]) -> None:
+        self.__header: Tuple[HT, ...] = tuple(i for i in value)
 
     def append(self, row: Iterable[CT]) -> None:
-        self.__datas.append(tuple(cell for cell in row))
+        self.__rows.append(tuple(cell for cell in row))
 
 
 def tabulate(table: form[Any, Any],
              format: Union[str, TableFormat] = "simple") -> str:
-    return __tabulate(tabular_data=table, headers=table.title, tablefmt=format)
+    return __tabulate(tabular_data=table,
+                      headers=table.header,
+                      tablefmt=format)
 
 
 class xls_reader():
@@ -81,8 +87,8 @@ class xls_reader():
         sheet_index: int = self.book.sheet_names().index(sheet_name)\
             if isinstance(sheet_name, str) else 0
         sheet: xlrd.sheet.Sheet = self.book.sheet_by_index(sheet_index)
-        title: Iterable[str] = sheet.row_values(0)
-        table: form[str, Any] = form(name=sheet.name, title=title)
+        first: Iterable[str] = sheet.row_values(0)  # first line as header
+        table: form[str, Any] = form(name=sheet.name, header=first)
         for i in range(1, sheet.nrows):
             table.append(sheet.row_values(i))
         return table
@@ -164,9 +170,9 @@ class xlsx():
             return self.book.sheetnames[0]
 
         sheet = self.book[get_default_sheet_name()]
-        cells = [row for row in sheet.iter_rows(max_row=1)][0]
-        title: List[str] = [c.value for c in cells if isinstance(c.value, str)]
-        table: form[str, Any] = form(name=sheet.title, title=title)
+        first = [row for row in sheet.iter_rows(max_row=1)][0]
+        cells: List[str] = [c.value for c in first if isinstance(c.value, str)]
+        table: form[str, Any] = form(name=sheet.title, header=cells)
         for row in sheet.iter_rows(min_row=2):
             table.append([cell.value for cell in row])
         return table
