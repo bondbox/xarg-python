@@ -5,3 +5,8 @@ mock
 argcomplete
 colorama
 colorlog
+openpyxl
+tabulate
+wcwidth
+xlrd
+xlwt

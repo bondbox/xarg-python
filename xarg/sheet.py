@@ -23,107 +23,110 @@ from wcwidth import wcswidth
 import xlrd
 import xlwt
 
-HT = TypeVar("HT")  # head type.
-CT = TypeVar("CT")  # cell type.
+FKT = TypeVar("FKT")
+FVT = TypeVar("FVT")
+RKT = TypeVar("RKT")
+RVT = TypeVar("RVT")
+CVT = TypeVar("CVT")
 
 
-class form(Generic[HT, CT]):
+class cell(Generic[CVT]):
+    """Cell in the custom table
+
+    Define cells to resolve the null value issue.
+    """
+
+    def __init__(self, value: Optional[CVT] = None):
+        self.value = value
+
+    def __str__(self) -> str:
+        return str(self.value if self.value is not None else "")
+
+    @property
+    def empty(self) -> bool:
+        return self.value is None
+
+    @property
+    def value(self) -> Optional[CVT]:
+        return self.__value
+
+    @value.setter
+    def value(self, value: Optional[CVT]):
+        self.__value = value
+
+
+class row(Generic[RKT, RVT]):
+    """Row in the custom table
+    """
+
+    def __init__(self, values: Union[Iterable[cell[RVT]],
+                                     Iterable[Optional[RVT]]]):
+        self.__cells = [self.new_cell(value=value) for value in values]
+
+    def __len__(self) -> int:
+        return len(self.__cells)
+
+    def __iter__(self) -> Iterator[cell[RVT]]:
+        """all cells
+        """
+        return iter(self.__cells)
+
+    def __getitem__(self, index: int) -> cell[RVT]:
+        return self.__cells[index]
+
+    def __setitem__(self, index: int,
+                    value: Union[cell[RVT],
+                                 Optional[RVT]]
+                    ) -> None:
+        self.__cells[index] = self.new_cell(value=value)
+
+    @property
+    def values(self) -> Tuple[Optional[RVT], ...]:
+        """all cell values
+        """
+        return tuple(cell.value for cell in self)
+
+    def append(self, value: Union[cell[RVT], Optional[RVT]]) -> None:
+        self.__cells.append(self.new_cell(value))
+
+    def extend(self, values: Union[Iterable[cell[RVT]],
+                                   Iterable[Optional[RVT]]]) -> None:
+        self.__cells.extend(self.new_cell(value) for value in values)
+
+    def mapping(self, header: Tuple[RKT, ...]) -> Dict[RKT, RVT]:
+        """Map the value of cells into dict
+        """
+        return {key: cell.value for key, cell in zip(header, self)
+                if cell.value is not None}
+
+    def new_cell(self, value: Union[cell[RVT], Optional[RVT]]) -> cell[RVT]:
+        return value if isinstance(value, cell) else cell(value)
+
+
+class form(Generic[FKT, FVT]):
     """Custom table
     """
-    class cell():
-        """Cell in the custom table
 
-        Define cells to resolve the null value issue.
-        """
-
-        def __init__(self, value: Optional[CT] = None):
-            self.value = value
-
-        def __str__(self) -> str:
-            return str(self.value if self.value is not None else "")
-
-        @property
-        def empty(self) -> bool:
-            return self.value is None
-
-        @property
-        def value(self) -> Optional[CT]:
-            return self.__value
-
-        @value.setter
-        def value(self, value: Optional[CT]):
-            self.__value = value
-
-    class row():
-        """Row in the custom table
-        """
-
-        def __init__(self, values: Union[Iterable["form.cell"],
-                                         Iterable[Optional[CT]]]):
-            self.__cells = [self.new_cell(value=value) for value in values]
-
-        def __len__(self) -> int:
-            return len(self.__cells)
-
-        def __iter__(self) -> Iterator["form.cell"]:
-            """all cells
-            """
-            return iter(self.__cells)
-
-        def __getitem__(self, index: int) -> "form.cell":
-            return self.__cells[index]
-
-        def __setitem__(self, index: int,
-                        value: Union["form.cell",
-                                     Optional[CT]]
-                        ) -> None:
-            self.__cells[index] = self.new_cell(value=value)
-
-        @property
-        def values(self) -> Tuple[Optional[CT], ...]:
-            """all cell values
-            """
-            return tuple(cell.value for cell in self)
-
-        def append(self, value: Union["form.cell", Optional[CT]]) -> None:
-            self.__cells.append(self.new_cell(value))
-
-        def extend(self, values: Union[Iterable["form.cell"],
-                                       Iterable[Optional[CT]]]) -> None:
-            self.__cells.extend(self.new_cell(value) for value in values)
-
-        def mapping(self, header: Tuple[HT, ...]) -> Dict[HT, CT]:
-            """Map the value of cells into dict
-            """
-            return {key: cell.value for key, cell in zip(header, self)
-                    if cell.value is not None}
-
-        @classmethod
-        def new_cell(cls, value: Union["form.cell",
-                                       Optional[CT]]
-                     ) -> "form.cell":
-            return value if isinstance(value, form.cell) else form.cell(value)
-
-    def __init__(self, name: str, header: Iterable[HT] = []):
-        self.__rows: List[form.row] = list()
+    def __init__(self, name: str, header: Iterable[FKT] = []):
+        self.__rows: List[row[FKT, FVT]] = list()
         self.__name: str = name
         self.header = header
 
     def __len__(self) -> int:
         return len(self.__rows)
 
-    def __iter__(self) -> Iterator["form.row"]:
+    def __iter__(self) -> Iterator[row[FKT, FVT]]:
         """all rows
         """
         return iter(self.__rows)
 
-    def __getitem__(self, index: int) -> "form.row":
+    def __getitem__(self, index: int) -> row[FKT, FVT]:
         return self.__rows[index]
 
     def __setitem__(self, index: int,
-                    value: Union["form.row",
-                                 Iterable["form.cell"],
-                                 Iterable[CT]]
+                    value: Union[row[FKT, FVT],
+                                 Iterable[cell[FVT]],
+                                 Iterable[FVT]]
                     ) -> None:
         self.__rows[index] = self.new_row(value)
 
@@ -134,21 +137,21 @@ class form(Generic[HT, CT]):
         return self.__name
 
     @property
-    def header(self) -> Tuple[HT, ...]:
+    def header(self) -> Tuple[FKT, ...]:
         """table header (title line)
         """
         return self.__header
 
     @header.setter
-    def header(self, value: Iterable[HT]) -> None:
-        self.__header: Tuple[HT, ...] = tuple(i for i in value)
+    def header(self, value: Iterable[FKT]) -> None:
+        self.__header: Tuple[FKT, ...] = tuple(i for i in value)
 
     @property
-    def mappings(self) -> Iterator[Dict[HT, CT]]:
+    def mappings(self) -> Iterator[Dict[FKT, FVT]]:
         return iter(row.mapping(self.header) for row in self)
 
     @property
-    def values(self) -> Tuple[Tuple[Optional[CT], ...], ...]:
+    def values(self) -> Tuple[Tuple[Optional[FVT], ...], ...]:
         """all cell values (by row)
         """
         return tuple(row.values for row in self)
@@ -160,30 +163,29 @@ class form(Generic[HT, CT]):
         table.extend(self.values)
         return tuple(table)
 
-    def reflection(self, cells: Dict[HT, CT]) -> "form.row":
+    def reflection(self, cells: Dict[FKT, FVT]) -> row[FKT, FVT]:
         """Re-map the dict to new row object
         """
         return self.new_row(cells=tuple(cells.get(key) for key in self.header))
 
-    def append(self, row: Union["form.row",
-                                Iterable["form.cell"],
-                                Iterable[CT]]
+    def append(self, row: Union[row[FKT, FVT],
+                                Iterable[cell[FVT]],
+                                Iterable[FVT]]
                ) -> None:
         self.__rows.append(self.new_row(row))
 
-    def extend(self, rows: Iterable[Union["form.row",
-                                          Iterable["form.cell"],
-                                          Iterable[CT]]]) -> None:
+    def extend(self, rows: Iterable[Union[row[FKT, FVT],
+                                          Iterable[cell[FVT]],
+                                          Iterable[FVT]]]) -> None:
         self.__rows.extend(self.new_row(row) for row in rows)
 
-    @classmethod
-    def new_row(cls, cells: Union["form.row",
-                                  Iterable["form.cell"],
-                                  Iterable[CT]]
-                ) -> "form.row":
-        return cells if isinstance(cells, form.row) else form.row(values=cells)
+    def new_row(self, cells: Union[row[FKT, FVT],
+                                   Iterable[cell[FVT]],
+                                   Iterable[Optional[FVT]]]
+                ) -> row[FKT, FVT]:
+        return cells if isinstance(cells, row) else row(values=cells)
 
-    def new_map(self, default: Any = None) -> Dict[HT, Any]:
+    def new_map(self, default: Any = None) -> Dict[FKT, Any]:
         """Generate new mapping with default values
         """
         return {key: default for key in self.header}
@@ -263,7 +265,7 @@ class xls_reader():
             table.append(sheet.row_values(i))
         return table
 
-    def load_sheets(self) -> Iterable[form[str, str]]:
+    def load_sheets(self) -> Tuple[form[str, str], ...]:
         return tuple(self.load_sheet(name) for name in self.book.sheet_names())
 
 
@@ -296,9 +298,10 @@ class xls_writer():
         sheet: xlwt.Worksheet = self.book.add_sheet(
             table.name, cell_overwrite_ok=True)
         widths: List[int] = []
-        for row_no in range(len(table)):
-            for col_no in range(len(table[row_no])):
-                value = str(table[row_no][col_no])
+        values: Tuple[Tuple[Any, ...], ...] = table.dump()
+        for row_no in range(len(values)):
+            for col_no in range(len(values[row_no])):
+                value = str(values[row_no][col_no])
                 sheet.write(row_no, col_no, value)
                 width = wcswidth(value)
                 if col_no >= len(widths):
@@ -347,5 +350,5 @@ class xlsx():
             table.append([cell.value for cell in row])
         return table
 
-    def load_sheets(self) -> Iterable[form[str, str]]:
+    def load_sheets(self) -> Tuple[form[str, str], ...]:
         return tuple(self.load_sheet(name) for name in self.book.sheetnames)
