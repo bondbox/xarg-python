@@ -1,5 +1,9 @@
 # coding=utf-8
 
+from csv import DictReader as csv_dist_reader
+from csv import DictWriter as csv_dist_writer
+from csv import reader as csv_reader
+from csv import writer as csv_writer
 import os
 from typing import Any
 from typing import Dict
@@ -190,6 +194,47 @@ def tabulate(table: form[Any, Any],
     return __tabulate(tabular_data=table.values,
                       headers=table.header,
                       tablefmt=format)
+
+
+def parse_table_name(filename: str) -> str:
+    return os.path.splitext(os.path.basename(filename))[0]
+
+
+class csv():
+
+    @classmethod
+    def load(cls, filename: str,
+             include_header: bool = True
+             ) -> form[str, str]:
+        """Read .csv file
+        """
+        with open(filename, "r") as rhdl:
+            table: form[str, str] = form(name=parse_table_name(filename))
+            if include_header:
+                reader = csv_dist_reader(rhdl)
+                fields = reader.fieldnames
+                if fields is not None:
+                    table.header = fields
+                    for row in reader:
+                        table.append(table.reflection(row))
+            else:
+                reader = csv_reader(rhdl)
+                for row in reader:
+                    table.append(row)
+        return table
+
+    @classmethod
+    def dump(cls, filename: str, table: form[Any, Any]) -> None:
+        """Write .csv file
+        """
+        with open(filename, "w") as whdl:
+            if len(table.header) > 0:
+                writer = csv_dist_writer(whdl, fieldnames=table.header)
+                writer.writeheader()
+                writer.writerows(table.mappings)
+            else:
+                writer = csv_writer(whdl)
+                writer.writerows(table.dump())
 
 
 class xls_reader():
