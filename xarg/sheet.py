@@ -163,10 +163,12 @@ class form(Generic[FKT, FVT]):
         table.extend(self.values)
         return tuple(table)
 
-    def reflection(self, cells: Dict[FKT, FVT]) -> row[FKT, FVT]:
+    def reflection(self, cells: Dict[FKT, FVT],
+                   default: Any = None) -> row[FKT, FVT]:
         """Re-map the dict to new row object
         """
-        return self.new_row(cells=tuple(cells.get(key) for key in self.header))
+        return self.new_row(cells=tuple(cells.get(key, default)
+                                        for key in self.header))
 
     def append(self, row: Union[row[FKT, FVT],
                                 Iterable[cell[FVT]],
