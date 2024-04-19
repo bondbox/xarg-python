@@ -1,0 +1,18 @@
+[MASTER]
+disable=
+    C0103,   # invalid-name
+    C0114,   # missing-module-docstring
+    C0115,   # missing-class-docstring
+    C0116,   # missing-function-docstring
+    W0212,   #
+    W0238,   #
+    W0611,   #
+    W0613,   #
+    W0621,   #
+    W0622,   #
+    W0718,   #
+    R0903,   # too-few-public-methods
+    R0904,   # too-many-public-methods
+    R0913,   # too-many-arguments
+    R0914,   # too-many-locals
+    R0915,   # too-many-statements

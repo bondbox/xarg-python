@@ -11,20 +11,17 @@ from xarg import run_command
 
 
 @add_command('key', help="item key")
-def cmd_key(argp: argp):
-    # print("key", argp)
+def cmd_key(_arg: argp):
     pass
 
 
 @add_command('value', help="item value")
-def cmd_val(argp: argp):
-    # print("value", argp)
+def cmd_val(_arg: argp):
     pass
 
 
 @add_command('get', help="get item")
-def cmd_get(argp: argp):
-    # print("get", argp)
+def cmd_get(_arg: argp):
     pass
 
 
@@ -35,8 +32,7 @@ def run_get(args) -> int:
 
 
 @add_command('set', help="set item")
-def cmd_set(argp: argp):
-    # print("set", argp)
+def cmd_set(_arg: argp):
     pass
 
 
@@ -47,8 +43,7 @@ def run_set(args) -> int:
 
 
 @add_command('del', help="delete item")
-def cmd_del(argp: argp):
-    # print("del", argp)
+def cmd_del(_arg: argp):
     pass
 
 
@@ -59,12 +54,10 @@ def run_del(args) -> int:
 
 
 @add_command('example')
-def cmd(argp: argp):
-    # print("example", argp)
-    argp.add_opt_on('--debug')
-    argp.add_opt_on('-t', '--test')
-    argp.add_opt_off('-s', '--show')
-    pass
+def cmd(_arg: argp):
+    _arg.add_opt_on('--debug')
+    _arg.add_opt_on('-t', '--test')
+    _arg.add_opt_off('-s', '--show')
 
 
 @run_command(cmd, cmd_get, cmd_set, cmd_del)
@@ -75,6 +68,7 @@ def run(args) -> int:
 
 def main(argv: Optional[List[str]] = None) -> int:
     return commands().run(
+        argv=argv,
         prog="xarg-example",
         description="Simple command-line tool based on argparse.")
 

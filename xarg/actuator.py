@@ -30,7 +30,7 @@ class add_command:
 
     >>> @add_command("example")\n
     >>> def cmd(_arg: argp):\n
-    >>>     argp.add_opt_on("-t", "--test")\n
+    >>>     _arg.add_opt_on("-t", "--test")\n
     '''
 
     def __init__(self, name: str, **kwargs):
@@ -60,13 +60,16 @@ class add_command:
         self.__options: Dict[str, Any] = kwargs
         self.__bind: Optional[run_command] = None
         self.__subs: Optional[Tuple[add_command, ...]] = None
+        self.__func: Optional[Callable[[argp], None]] = None
 
     def __call__(self, cmd_func: Callable[[argp], None]):
-        self.__func: Callable[[argp], None] = cmd_func
+        self.__func = cmd_func
         return self
 
     @property
     def func(self) -> Callable[[argp], None]:
+        if self.__func is None:
+            raise ValueError("No function")
         return self.__func
 
     @property
@@ -166,13 +169,16 @@ class run_command:
         self.__bind: add_command = cmd_bind
         self.__prep: Optional["pre_command"] = None
         self.__done: Optional["end_command"] = None
+        self.__func: Optional[Callable[["commands"], int]] = None
 
     def __call__(self, run_func: Callable[["commands"], int]):
-        self.__func: Callable[["commands"], int] = run_func
+        self.__func = run_func
         return self
 
     @property
     def func(self) -> Callable[["commands"], int]:
+        if self.__func is None:
+            raise ValueError("No function")
         return self.__func
 
     @property
@@ -228,13 +234,16 @@ class pre_command:
         assert isinstance(run_bind, run_command)
         run_bind.prep = self
         self.__main: run_command = run_bind
+        self.__func: Optional[Callable[["commands"], int]] = None
 
     def __call__(self, run_func: Callable[["commands"], int]):
-        self.__func: Callable[["commands"], int] = run_func
+        self.__func = run_func
         return self
 
     @property
     def func(self) -> Callable[["commands"], int]:
+        if self.__func is None:
+            raise ValueError("No function")
         return self.__func
 
     @property
@@ -268,13 +277,16 @@ class end_command:
         assert isinstance(run_bind, run_command)
         run_bind.done = self
         self.__main: run_command = run_bind
+        self.__func: Optional[Callable[["commands"], int]] = None
 
     def __call__(self, run_func: Callable[["commands"], int]):
-        self.__func: Callable[["commands"], int] = run_func
+        self.__func = run_func
         return self
 
     @property
     def func(self) -> Callable[["commands"], int]:
+        if self.__func is None:
+            raise ValueError("No function")
         return self.__func
 
     @property
@@ -302,7 +314,7 @@ class commands(log):
 
     >>> @add_command("example")\n
     >>> def cmd(_arg: argp):\n
-    >>>     argp.add_opt_on("-t", "--test")\n
+    >>>     _arg.add_opt_on("-t", "--test")\n
 
     >>> @run_command(cmd, cmd_get, cmd_set)\n
     >>> def run(cmds: commands) -> int:\n
@@ -400,20 +412,20 @@ class commands(log):
         sys.stderr.write(f"{context}\n")
         sys.stderr.flush()
 
-    def __add_optional_version(self, argp: argp):
+    def __add_optional_version(self, _arg: argp):
         version = self.version
         if not isinstance(version, str):
             return
 
-        options = argp.filter_optional_name("-v", "--version")
+        options = _arg.filter_optional_name("-v", "--version")
         if len(options) > 0:
-            argp.add_argument(*options, action="version",
+            _arg.add_argument(*options, action="version",
                               version=f"%(prog)s {version.strip()}")
 
-    def __add_inner_parser_tail(self, argp: argp):
+    def __add_inner_parser_tail(self, _arg: argp):
 
         def filter_optional_name(*name: str) -> Optional[str]:
-            options = argp.filter_optional_name(*name)
+            options = _arg.filter_optional_name(*name)
             if len(options) > 0:
                 for i in name:
                     if i in options:
@@ -421,7 +433,7 @@ class commands(log):
             return None
 
         def add_optional_level():
-            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
+            group = _arg.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group_level = group.add_mutually_exclusive_group()
 
             option_level = filter_optional_name("--level", "--log-level")
@@ -458,7 +470,7 @@ class commands(log):
             if not isinstance(option, str):
                 return
 
-            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
+            group = _arg.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group.add_argument(option,
                                type=str,
                                nargs=1,
@@ -478,7 +490,7 @@ class commands(log):
                 " %(funcName)s %(filename)s:%(lineno)s"\
                 " %(message)s"
 
-            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
+            group = _arg.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group.add_argument(option,
                                type=str,
                                nargs="?",
@@ -489,7 +501,7 @@ class commands(log):
                                help="Logger output format.")
 
         def add_optional_console():
-            group = argp.argument_group(self.LOGGER_ARGUMENT_GROUP)
+            group = _arg.argument_group(self.LOGGER_ARGUMENT_GROUP)
             group_std = group.add_mutually_exclusive_group()
 
             option = filter_optional_name("--stdout", "--log-stdout")
@@ -568,7 +580,7 @@ class commands(log):
             root = self.root
         assert isinstance(root, add_command)
 
-        _map: Dict[add_command, argp] = dict()
+        _map: Dict[add_command, argp] = {}
         _arg = argp(argv=argv, **kwargs)
         self.__prog = _arg.prog
         self.__add_optional_version(_arg)
@@ -668,14 +680,14 @@ class commands(log):
 
         kwargs.pop("prog", None)  # Please do not specify prog
         args = self.parse(root, argv, **kwargs)
-        self.logger.debug(f"{args}")
+        self.logger.debug("%s", args)
 
         try:
             version = self.version
             if isinstance(version, str):
                 # Output version for the debug level. Internal log
                 # items are debug level only, except for errors.
-                self.logger.debug(f"version: {version}")
+                self.logger.debug("version: %s", version)
 
             ret = self.__pre(args, root)
             if ret != 0 and ret is not None:
