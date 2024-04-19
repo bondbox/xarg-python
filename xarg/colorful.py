@@ -99,7 +99,7 @@ class color(str):
         self.__style = _value
 
     def add_style(self, value: StyleType) -> "color":
-        assert isinstance(value, StyleType), f"Unexpected type: {type(value)}"
+        assert isinstance(value, (str, int)), f"Unexpected type: {type(value)}"
         _value: str = code_to_chars(value) if isinstance(value, int) else value
         self.__style.add(_value)
         return self
