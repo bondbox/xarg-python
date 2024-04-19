@@ -83,7 +83,7 @@ class log:
                         handlers: Optional[Iterable[logging.Handler]] = None,
                         filters: Optional[Iterable[logging.Filter]] = None):
         if self.logger_initiated(logger.name):
-            logger.warn(F"logger {logger.name} is already initiated")
+            logger.warning(F"logger {logger.name} is already initiated")
 
         if isinstance(level, str):
             logger.setLevel(logging._nameToLevel[level.upper()])

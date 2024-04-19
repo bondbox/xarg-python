@@ -1,6 +1,6 @@
 MAKEFLAGS += --always-make
 
-all: build install
+all: build install test
 
 
 clean-cover:
@@ -39,3 +39,8 @@ install:
 
 uninstall:
 	pip3 uninstall -y xarg-python
+
+
+test:
+	pip3 install --upgrade flake8 pytest
+	pytest
