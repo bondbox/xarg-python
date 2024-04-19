@@ -145,7 +145,7 @@ class scanner:
             return code
 
     def __init__(self):
-        self.__objdict: Dict[str, scanner.object] = dict()
+        self.__objdict: Dict[str, scanner.object] = {}
         self.__objects: Set[scanner.object] = set()
         self.__objsyms: Set[scanner.object] = set()
         self.__objregs: Set[scanner.object] = set()
@@ -184,10 +184,13 @@ class scanner:
     @classmethod
     def load(cls,
              paths: Sequence[str],
-             exclude: Sequence[str] = [],
+             exclude: Optional[Sequence[str]] = None,
              linkdir: bool = True,
              threads: int = THDNUM_DEFAULT,
              handler: Optional[Callable[[object], bool]] = None):
+        if exclude is None:
+            exclude = []
+
         assert isinstance(paths, Sequence)
         assert isinstance(exclude, Sequence)
         assert isinstance(linkdir, bool)
@@ -216,15 +219,15 @@ class scanner:
                 self.handler = handler
                 self.scanner = scanner()
                 self.filter: Set[str] = filter()
-                self.q_path: Queue[str] = Queue()
-                self.q_task: Queue[scanner.object] = Queue(maxsize=thds * 2)
+                self.q_path: "Queue[str]" = Queue()
+                self.q_task: "Queue[scanner.object]" = Queue(maxsize=thds * 2)
 
         scan_stat = task_stat()
 
         def task_scan_path():
             scanned_dirs = set()
             name = current_thread().name
-            cmds.logger.debug(f"task thread[{name}] start")
+            cmds.logger.debug("task thread[%s] start", name)
             while not scan_stat.exit or not scan_stat.q_path.empty():
                 try:
                     path = scan_stat.q_path.get(timeout=0.01)
@@ -235,7 +238,7 @@ class scanner:
                 assert isinstance(path, str)
 
                 if path in scan_stat.filter or not os.path.exists(path):
-                    cmds.logger.debug(f"scan filter {path}")
+                    cmds.logger.debug("scan filter %s", path)
                     scan_stat.q_path.task_done()
                     continue
 
@@ -257,21 +260,21 @@ class scanner:
                 if result is True:
                     scan_stat.q_task.put(object)
                 scan_stat.q_path.task_done()
-            cmds.logger.debug(f"task thread[{name}] exit")
+            cmds.logger.debug("task thread[%s] exit", name)
 
         def task_scan():
             name = current_thread().name
-            cmds.logger.debug(f"task thread[{name}] start")
+            cmds.logger.debug("task thread[%s] start", name)
             while not scan_stat.exit or not scan_stat.q_task.empty():
                 try:
                     obj = scan_stat.q_task.get(timeout=0.01)
                 except Empty:
                     continue
 
-                cmds.logger.debug(f"scan {obj.path}")
+                cmds.logger.debug("scan %s", obj.path)
                 scan_stat.scanner.add(obj=obj)
                 scan_stat.q_task.task_done()
-            cmds.logger.debug(f"task thread[{name}] exit")
+            cmds.logger.debug("task thread[%s] exit", name)
 
         task_threads: List[Thread] = []
         task_threads.append(Thread(target=task_scan, name="xarg-scan"))

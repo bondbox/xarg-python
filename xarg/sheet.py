@@ -107,10 +107,10 @@ class form(Generic[FKT, FVT]):
     """Custom table
     """
 
-    def __init__(self, name: str, header: Iterable[FKT] = []):
-        self.__rows: List[row[FKT, FVT]] = list()
+    def __init__(self, name: str, header: Optional[Iterable[FKT]] = None):
+        self.__rows: List[row[FKT, FVT]] = []
         self.__name: str = name
-        self.header = header
+        self.header = header if header is not None else []
 
     def __len__(self) -> int:
         return len(self.__rows)
@@ -212,7 +212,7 @@ class csv():
              ) -> form[str, str]:
         """Read .csv file
         """
-        with open(filename, "r") as rhdl:
+        with open(filename, "r", encoding="utf-8") as rhdl:
             table: form[str, str] = form(name=parse_table_name(filename))
             if include_header:
                 reader = csv_dist_reader(rhdl)
@@ -231,7 +231,7 @@ class csv():
     def dump(cls, filename: str, table: form[Any, Any]) -> None:
         """Write .csv file
         """
-        with open(filename, "w") as whdl:
+        with open(filename, "w", encoding="utf-8") as whdl:
             if len(table.header) > 0:
                 writer = csv_dist_writer(whdl, fieldnames=table.header)
                 writer.writeheader()
@@ -301,9 +301,9 @@ class xls_writer():
             table.name, cell_overwrite_ok=True)
         widths: List[int] = []
         values: Tuple[Tuple[Any, ...], ...] = table.dump()
-        for row_no in range(len(values)):
-            for col_no in range(len(values[row_no])):
-                value = str(values[row_no][col_no])
+        for row_no, cells in enumerate(values):
+            for col_no, cell in enumerate(cells):
+                value = str(cell)
                 sheet.write(row_no, col_no, value)
                 width = wcswidth(value)
                 if col_no >= len(widths):
@@ -345,7 +345,7 @@ class xlsx():
             return self.book.sheetnames[0]
 
         sheet = self.book[get_default_sheet_name()]
-        first = [row for row in sheet.iter_rows(max_row=1)][0]
+        first = list(sheet.iter_rows(max_row=1))[0]
         cells: List[str] = [c.value for c in first if isinstance(c.value, str)]
         table: form[str, Any] = form(name=sheet.title, header=cells)
         for row in sheet.iter_rows(min_row=2):

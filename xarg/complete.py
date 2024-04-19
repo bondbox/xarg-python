@@ -46,10 +46,10 @@ done
 """
         if not os.path.exists(bash_completion_hook):
             os.makedirs(bash_completion_hook)
-        with open(bash_completion_path, "r") as fh:
+        with open(bash_completion_path, "r", encoding="utf-8") as fh:
             if bash_completion_code in fh.read():
                 return
-        with open(bash_completion_path, "a") as fh:
+        with open(bash_completion_path, "a", encoding="utf-8") as fh:
             fh.write(f"\n{bash_completion_code}\n")
 
     update_code()
@@ -91,8 +91,8 @@ class collections:
 
     def __init__(self):
         self.__cmds: Set[str] = set()
-        for _pkg in {"argcomplete", __project__}:
-            for _req in {i for i in self.get_package_info(_pkg).required_by}:
+        for _pkg in tuple({"argcomplete", __project__}):
+            for _req in set(self.get_package_info(_pkg).required_by):
                 config = ConfigParser()
                 package_info = self.get_package_info(_req)
                 config.read_string(os.linesep.join(package_info.entry_points))
@@ -106,7 +106,7 @@ class collections:
 
     @classmethod
     def get_package_info(cls, package_name: str) -> _PackageInfo:
-        return [i for i in search_packages_info([package_name])][0]
+        return list(search_packages_info([package_name]))[0]
 
 
 @add_command("enable", help="Enable completion.")

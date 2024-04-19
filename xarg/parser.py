@@ -91,21 +91,30 @@ class argp(ArgumentParser):
         kwargs.setdefault("epilog", epilog)
         ArgumentParser.__init__(self, **kwargs)
         self.__argv: Optional[Sequence[str]] = argv
-        self.__help_option: Dict[str, _HelpAction] = dict()
+        self.__help_option: Dict[str, _HelpAction] = {}
         self.__prev_parser: argp = prev_parser or self
-        self.__next_parser: List[argp] = list()
+        self.__next_parser: List[argp] = []
         if prev_parser is not None:
-            prev_parser.__next_parser.append(self)
+            prev_parser.next_parser.append(self)
 
     @property
     def argv(self) -> Optional[Sequence[str]]:
-        return self.root_parser.__argv
+        root = self.root_parser
+        return root.argv if root is not self else self.__argv
+
+    @property
+    def prev_parser(self) -> "argp":
+        return self.__prev_parser
+
+    @property
+    def next_parser(self) -> List["argp"]:
+        return self.__next_parser
 
     @property
     def root_parser(self) -> "argp":
-        root = self.__prev_parser
-        while root.__prev_parser != root:
-            root = root.__prev_parser
+        root = self.prev_parser
+        while root.prev_parser != root:
+            root = root.prev_parser
         return root
 
     def argument_group(self,
@@ -216,12 +225,12 @@ class argp(ArgumentParser):
 
         def __dfs_enable_help_action(root: argp):
             root.__enable_help_action()
-            for _sub in root.__next_parser:
+            for _sub in root.next_parser:
                 __dfs_enable_help_action(_sub)
 
         def __dfs_disable_help_action(root: argp):
             root.__disable_help_action()
-            for _sub in root.__next_parser:
+            for _sub in root.next_parser:
                 __dfs_disable_help_action(_sub)
 
         try:

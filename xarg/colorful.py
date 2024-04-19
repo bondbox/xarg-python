@@ -48,7 +48,7 @@ class color(str):
     Reference: https://en.wikipedia.org/wiki/ANSI_escape_code
     '''
 
-    def __init__(self, object: object):
+    def __init__(self, obj: object):
         self.__background: Optional[str] = None
         self.__foreground: Optional[str] = None
         self.__style: Set[str] = set()
@@ -105,20 +105,20 @@ class color(str):
         return self
 
     @classmethod
-    def new_background(cls, object: object, value: str) -> "color":
-        colour: color = color(object)
+    def new_background(cls, obj: object, value: str) -> "color":
+        colour: color = color(obj)
         colour.background = value
         return colour
 
     @classmethod
-    def new_foreground(cls, object: object, value: str) -> "color":
-        colour: color = color(object)
+    def new_foreground(cls, obj: object, value: str) -> "color":
+        colour: color = color(obj)
         colour.foreground = value
         return colour
 
     @classmethod
-    def new_style(cls, object: object, value: Set[StyleType]) -> "color":
-        colour: color = color(object)
+    def new_style(cls, obj: object, value: Set[StyleType]) -> "color":
+        colour: color = color(obj)
         colour.style = value
         return colour
 
@@ -127,177 +127,177 @@ class color(str):
         return Style.RESET_ALL
 
     @classmethod
-    def bold(cls, object: object) -> "color":
-        return color.new_style(object, {Style.BRIGHT})
+    def bold(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.BRIGHT})
 
     @classmethod
-    def dim(cls, object: object) -> "color":
-        return color.new_style(object, {Style.DIM})
+    def dim(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.DIM})
 
     @classmethod
-    def italic(cls, object: object) -> "color":
-        return color.new_style(object, {Style.ITALIC})
+    def italic(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.ITALIC})
 
     @classmethod
-    def underline(cls, object: object) -> "color":
-        return color.new_style(object, {Style.UNDERLINE})
+    def underline(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.UNDERLINE})
 
     @classmethod
-    def slow_blink(cls, object: object) -> "color":
-        return color.new_style(object, {Style.SLOWBLINK})
+    def slow_blink(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.SLOWBLINK})
 
     @classmethod
-    def rapid_blink(cls, object: object) -> "color":
-        return color.new_style(object, {Style.RAPIDBLINK})
+    def rapid_blink(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.RAPIDBLINK})
 
     @classmethod
-    def invert(cls, object: object) -> "color":
-        return color.new_style(object, {Style.INVERT})
+    def invert(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.INVERT})
 
     @classmethod
-    def hide(cls, object: object) -> "color":
-        return color.new_style(object, {Style.HIDE})
+    def hide(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.HIDE})
 
     @classmethod
-    def strikethrough(cls, object: object) -> "color":
-        return color.new_style(object, {Style.STRIKETHROUGH})
+    def strikethrough(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.STRIKETHROUGH})
 
     @classmethod
-    def doubly_underlined(cls, object: object) -> "color":
-        return color.new_style(object, {Style.DOUBLYUNDERLINED})
+    def doubly_underlined(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.DOUBLYUNDERLINED})
 
     @classmethod
-    def normal(cls, object: object) -> "color":
-        return color.new_style(object, {Style.NORMAL})
+    def normal(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.NORMAL})
 
     @classmethod
-    def reveal(cls, object: object) -> "color":
-        return color.new_style(object, {Style.REVEAL})
+    def reveal(cls, obj: object) -> "color":
+        return color.new_style(obj, {Style.REVEAL})
 
     @classmethod
-    def black(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.BLACK)
+    def black(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.BLACK)
 
     @classmethod
-    def red(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.RED)
+    def red(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.RED)
 
     @classmethod
-    def green(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.GREEN)
+    def green(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.GREEN)
 
     @classmethod
-    def yellow(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.YELLOW)
+    def yellow(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.YELLOW)
 
     @classmethod
-    def blue(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.BLUE)
+    def blue(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.BLUE)
 
     @classmethod
-    def magenta(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.MAGENTA)
+    def magenta(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.MAGENTA)
 
     @classmethod
-    def cyan(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.CYAN)
+    def cyan(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.CYAN)
 
     @classmethod
-    def white(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.WHITE)
+    def white(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.WHITE)
 
     @classmethod
-    def lightblack(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTBLACK_EX)
+    def lightblack(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTBLACK_EX)
 
     @classmethod
-    def lightred(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTRED_EX)
+    def lightred(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTRED_EX)
 
     @classmethod
-    def lightgreen(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTGREEN_EX)
+    def lightgreen(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTGREEN_EX)
 
     @classmethod
-    def lightyellow(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTYELLOW_EX)
+    def lightyellow(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTYELLOW_EX)
 
     @classmethod
-    def lightblue(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTBLUE_EX)
+    def lightblue(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTBLUE_EX)
 
     @classmethod
-    def lightmagenta(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTMAGENTA_EX)
+    def lightmagenta(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTMAGENTA_EX)
 
     @classmethod
-    def lightcyan(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTCYAN_EX)
+    def lightcyan(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTCYAN_EX)
 
     @classmethod
-    def lightwhite(cls, object: object) -> "color":
-        return color.new_foreground(object, Fore.LIGHTWHITE_EX)
+    def lightwhite(cls, obj: object) -> "color":
+        return color.new_foreground(obj, Fore.LIGHTWHITE_EX)
 
     @classmethod
-    def black_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.BLACK)
+    def black_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.BLACK)
 
     @classmethod
-    def red_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.RED)
+    def red_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.RED)
 
     @classmethod
-    def green_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.GREEN)
+    def green_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.GREEN)
 
     @classmethod
-    def yellow_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.YELLOW)
+    def yellow_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.YELLOW)
 
     @classmethod
-    def blue_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.BLUE)
+    def blue_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.BLUE)
 
     @classmethod
-    def magenta_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.MAGENTA)
+    def magenta_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.MAGENTA)
 
     @classmethod
-    def cyan_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.CYAN)
+    def cyan_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.CYAN)
 
     @classmethod
-    def white_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.WHITE)
+    def white_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.WHITE)
 
     @classmethod
-    def lightblack_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTBLACK_EX)
+    def lightblack_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTBLACK_EX)
 
     @classmethod
-    def lightred_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTRED_EX)
+    def lightred_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTRED_EX)
 
     @classmethod
-    def lightgreen_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTGREEN_EX)
+    def lightgreen_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTGREEN_EX)
 
     @classmethod
-    def lightyellow_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTYELLOW_EX)
+    def lightyellow_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTYELLOW_EX)
 
     @classmethod
-    def lightblue_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTBLUE_EX)
+    def lightblue_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTBLUE_EX)
 
     @classmethod
-    def lightmagenta_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTMAGENTA_EX)
+    def lightmagenta_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTMAGENTA_EX)
 
     @classmethod
-    def lightcyan_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTCYAN_EX)
+    def lightcyan_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTCYAN_EX)
 
     @classmethod
-    def lightwhite_back(cls, object: object) -> "color":
-        return color.new_background(object, Back.LIGHTWHITE_EX)
+    def lightwhite_back(cls, obj: object) -> "color":
+        return color.new_background(obj, Back.LIGHTWHITE_EX)
