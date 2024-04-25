@@ -23,11 +23,11 @@ from tabulate import tabulate
 from .actuator import add_command
 from .actuator import commands
 from .actuator import run_command
+from .attribute import __prog_complete__
+from .attribute import __project__
+from .attribute import __url_home__
+from .attribute import __version__
 from .parser import argp
-from .util import __prog_complete__
-from .util import __project__
-from .util import __url_home__
-from .util import __version__
 from .util import singleton
 
 USER_BASH_COMPLETION_CFG = "~/.bash_completion"
@@ -139,9 +139,10 @@ def add_cmd_update(_arg: argp):
 
 @run_command(add_cmd_update)
 def run_cmd_update(cmds: commands) -> int:
-    if len(cmds.args._commands_) == 0:
-        cmds.args._commands_ = collections().cmds
-    for cmd in set(cmds.args._commands_):
+    iter_commands = getattr(cmds.args, "_commands_")
+    if len(iter_commands) == 0:
+        iter_commands = collections().cmds
+    for cmd in set(iter_commands):
         if shutil.which(cmd) is None:
             cmds.stderr(f"Non existent command or script: {cmd}")
             continue
@@ -171,14 +172,15 @@ def add_cmd_remove(_arg: argp):
 
 @run_command(add_cmd_remove)
 def run_cmd_remove(cmds: commands) -> int:
-    if cmds.args._clean_:
-        assert isinstance(cmds.args._commands_, list)
+    list_commands: List[str] = getattr(cmds.args, "_commands_")
+    if getattr(cmds.args, "_clean_"):
+        assert isinstance(list_commands, list)
         for cmd in list_bash():
-            if cmd in cmds.args._commands_:
+            if cmd in list_commands:
                 continue
             if shutil.which(cmd) is None:
-                cmds.args._commands_.append(cmd)
-    for cmd in set(cmds.args._commands_):
+                list_commands.append(cmd)
+    for cmd in set(list_commands):
         cmds.stdout(f"Remove command or script: {cmd}")
         assert remove_bash(cmd)
     return 0

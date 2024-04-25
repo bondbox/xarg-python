@@ -170,11 +170,11 @@ class form(Generic[FKT, FVT]):
         return self.new_row(cells=tuple(cells.get(key, default)
                                         for key in self.header))
 
-    def append(self, row: Union[row[FKT, FVT],
-                                Iterable[cell[FVT]],
-                                Iterable[FVT]]
+    def append(self, item: Union[row[FKT, FVT],
+                                 Iterable[cell[FVT]],
+                                 Iterable[FVT]]
                ) -> None:
-        self.__rows.append(self.new_row(row))
+        self.__rows.append(self.new_row(item))
 
     def extend(self, rows: Iterable[Union[row[FKT, FVT],
                                           Iterable[cell[FVT]],
@@ -194,10 +194,10 @@ class form(Generic[FKT, FVT]):
 
 
 def tabulate(table: form[Any, Any],
-             format: Union[str, TableFormat] = "simple") -> str:
+             fmt: Union[str, TableFormat] = "simple") -> str:
     return __tabulate(tabular_data=table.values,
                       headers=table.header,
-                      tablefmt=format)
+                      tablefmt=fmt)
 
 
 def parse_table_name(filename: str) -> str:
@@ -219,12 +219,12 @@ class csv():
                 fields = reader.fieldnames
                 if fields is not None:
                     table.header = fields
-                    for row in reader:
-                        table.append(table.reflection(row))
+                    for _row in reader:
+                        table.append(table.reflection(_row))
             else:
                 reader = csv_reader(rhdl)
-                for row in reader:
-                    table.append(row)
+                for _row in reader:
+                    table.append(_row)
         return table
 
     @classmethod
@@ -292,7 +292,7 @@ class xls_writer():
                 os.makedirs(dirname)
             self.book.save(abspath)
             return True
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             # f"failed to write file {abspath}"
             return False
 
@@ -302,8 +302,8 @@ class xls_writer():
         widths: List[int] = []
         values: Tuple[Tuple[Any, ...], ...] = table.dump()
         for row_no, cells in enumerate(values):
-            for col_no, cell in enumerate(cells):
-                value = str(cell)
+            for col_no, _cell in enumerate(cells):
+                value = str(_cell)
                 sheet.write(row_no, col_no, value)
                 width = wcswidth(value)
                 if col_no >= len(widths):
@@ -348,8 +348,8 @@ class xlsx():
         first = list(sheet.iter_rows(max_row=1))[0]
         cells: List[str] = [c.value for c in first if isinstance(c.value, str)]
         table: form[str, Any] = form(name=sheet.title, header=cells)
-        for row in sheet.iter_rows(min_row=2):
-            table.append([cell.value for cell in row])
+        for _row in sheet.iter_rows(min_row=2):
+            table.append([cell.value for cell in _row])
         return table
 
     def load_sheets(self) -> Tuple[form[str, str], ...]:

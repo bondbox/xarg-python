@@ -26,8 +26,7 @@ THDNUM_DEFAULT = int(THDNUM_MAXIMUM / 2)
 
 
 class scanner:
-    '''
-    scan objects
+    '''scan objects
     '''
 
     class object:
@@ -60,15 +59,13 @@ class scanner:
 
         @property
         def uid(self) -> int:
-            '''
-            user id of owner
+            '''user id of owner
             '''
             return self.stat.st_uid
 
         @property
         def gid(self) -> int:
-            '''
-            group id of owner
+            '''group id of owner
             '''
             return self.stat.st_gid
 
@@ -82,15 +79,13 @@ class scanner:
 
         @property
         def atime(self) -> float:
-            '''
-            time of most recent access
+            '''time of most recent access
             '''
             return self.stat.st_atime
 
         @property
         def mtime(self) -> float:
-            '''
-            time of most recent content modification
+            '''time of most recent content modification
             '''
             return self.stat.st_mtime
 
@@ -125,9 +120,9 @@ class scanner:
                     data = fhandler.read(size)
                     if not data:
                         break
-                    for hash in args:
-                        hash.update(data)
-            return (hash.hexdigest() for hash in args)
+                    for obj in args:
+                        obj.update(data)
+            return (obj.hexdigest() for obj in args)
 
         @property
         def md5(self) -> str:
@@ -204,7 +199,7 @@ class scanner:
             return os.path.relpath(path)
 
         # filter files and directorys
-        def filter() -> Set[str]:
+        def path_filter() -> Set[str]:
             filter_paths: Set[str] = set()
 
             for path in exclude:
@@ -218,7 +213,7 @@ class scanner:
                 self.exit = False
                 self.handler = handler
                 self.scanner = scanner()
-                self.filter: Set[str] = filter()
+                self.filter: Set[str] = path_filter()
                 self.q_path: "Queue[str]" = Queue()
                 self.q_task: "Queue[scanner.object]" = Queue(maxsize=thds * 2)
 
@@ -250,15 +245,15 @@ class scanner:
                             spath = os.path.join(path, sub)
                             scan_stat.q_path.put(spath)
 
-                result = True
-                object = scanner.object(path)
+                ret = True
+                obj = scanner.object(path)
 
                 if isinstance(scan_stat.handler, Callable):
-                    result = scan_stat.handler(object)
-                    assert isinstance(result, bool)
+                    ret = scan_stat.handler(obj)
+                    assert isinstance(ret, bool)
 
-                if result is True:
-                    scan_stat.q_task.put(object)
+                if ret is True:
+                    scan_stat.q_task.put(obj)
                 scan_stat.q_path.task_done()
             cmds.logger.debug("task thread[%s] exit", name)
 

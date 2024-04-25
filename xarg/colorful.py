@@ -48,7 +48,7 @@ class color(str):
     Reference: https://en.wikipedia.org/wiki/ANSI_escape_code
     '''
 
-    def __init__(self, obj: object):
+    def __init__(self, obj: object):  # pylint: disable=unused-argument
         self.__background: Optional[str] = None
         self.__foreground: Optional[str] = None
         self.__style: Set[str] = set()

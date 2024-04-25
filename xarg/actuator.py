@@ -530,21 +530,35 @@ class commands(log):
         if not self.enabled_logger:
             return
 
-        level_name: Optional[str] = args._log_level_str_.upper() if hasattr(
-            args, "_log_level_str_") and isinstance(
-            args._log_level_str_, str) else None
-        fmt: Optional[str] = args._log_format_ if hasattr(
-            args, "_log_format_") and isinstance(
-            args._log_format_, str) else None
+        def parse_format() -> Optional[str]:
+            if hasattr(args, "_log_format_"):
+                fmt = getattr(args, "_log_format_")
+                if isinstance(fmt, str):
+                    return fmt
+            return None
+
+        def parse_level() -> Optional[str]:
+            if hasattr(args, "_log_level_str_"):
+                level = getattr(args, "_log_level_str_")
+                if isinstance(level, str):
+                    return level.upper()
+            return None
+
+        def parse_console() -> Optional[Any]:
+            return getattr(args, "_log_console_", None)
+
+        def parse_files() -> List[str]:
+            return getattr(args, "_log_files_", [])
+
+        fmt: Optional[str] = parse_format()
+        level_name: Optional[str] = parse_level()
+        console: Optional[Any] = parse_console()
 
         handlers: List[logging.Handler] = []
-        if hasattr(args, "_log_console_") and args._log_console_ is not None:
-            handlers.append(
-                log.new_stream_handler(stream=args._log_console_, fmt=fmt))
-        if hasattr(args, "_log_files_"):
-            for filename in args._log_files_:
-                handlers.append(
-                    log.new_file_handler(filename=filename, fmt=fmt))
+        if console is not None:
+            handlers.append(log.new_stream_handler(stream=console, fmt=fmt))
+        for filename in parse_files():
+            handlers.append(log.new_file_handler(filename=filename, fmt=fmt))
         self.initiate_logger(self.logger, level=level_name, handlers=handlers)
 
     def __add_parser(self, _map: Dict[add_command, argp],
@@ -695,7 +709,7 @@ class commands(log):
             return self.__run(args, root)
         except KeyboardInterrupt:
             return EINTR
-        except BaseException:
+        except BaseException:  # pylint: disable=broad-except
             self.logger.exception("Something went wrong:")
             return 10000
 

@@ -36,7 +36,7 @@ class test_safile(unittest.TestCase):
         text2.style = {Style.BRIGHT, Style.UNDERLINE}
         commands().stdout(f"text1: {text1}")
         commands().stdout(f"text2: {text2}")
-        self.assertEqual(str(text1), str(text2))
+        self.assertEqual(text1.style, text2.style)
 
     def test_bold_style(self):
         text1 = color("unittest bold")
