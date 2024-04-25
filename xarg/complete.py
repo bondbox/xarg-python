@@ -23,11 +23,11 @@ from tabulate import tabulate
 from .actuator import add_command
 from .actuator import commands
 from .actuator import run_command
+from .attribute import __prog_complete__
+from .attribute import __project__
+from .attribute import __url_home__
+from .attribute import __version__
 from .parser import argp
-from .util import __prog_complete__
-from .util import __project__
-from .util import __url_home__
-from .util import __version__
 from .util import singleton
 
 USER_BASH_COMPLETION_CFG = "~/.bash_completion"

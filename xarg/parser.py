@@ -12,7 +12,7 @@ from typing import Sequence
 from typing import Set
 from typing import Tuple
 
-from .util import __url_home__ as __url__
+from .attribute import __url_home__ as __url__
 
 try:
     from argcomplete import autocomplete

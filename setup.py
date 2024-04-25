@@ -3,15 +3,15 @@
 from setuptools import find_packages
 from setuptools import setup
 
-from xarg.util import __author__
-from xarg.util import __author_email__
-from xarg.util import __description__
-from xarg.util import __project__
-from xarg.util import __url_bugs__
-from xarg.util import __url_code__
-from xarg.util import __url_docs__
-from xarg.util import __url_home__
-from xarg.util import __version__
+from xarg.attribute import __author__
+from xarg.attribute import __author_email__
+from xarg.attribute import __description__
+from xarg.attribute import __project__
+from xarg.attribute import __url_bugs__
+from xarg.attribute import __url_code__
+from xarg.attribute import __url_docs__
+from xarg.attribute import __url_home__
+from xarg.attribute import __version__
 
 setup(
     name=__project__,
