@@ -194,13 +194,13 @@ class argp(ArgumentParser):
                          ) -> Tuple[Namespace, List[str]]:
         return super().parse_known_args(args=args, namespace=namespace)
 
-    def __enable_help_action(self):
+    def __enable_help_action(self):  # pylint: disable=unused-private-member
         while len(self.__help_option) > 0:
             option, action = self.__help_option.popitem()
             self._option_string_actions[option] = action
         assert len(self.__help_option) == 0
 
-    def __disable_help_action(self):
+    def __disable_help_action(self):  # pylint: disable=unused-private-member
         assert len(self.__help_option) == 0
         for option, action in self._option_string_actions.items():
             if isinstance(action, _HelpAction):
