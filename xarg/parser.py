@@ -77,7 +77,7 @@ class argp(ArgumentParser):
     '''Simple command-line tool based on argparse.
     '''
 
-    def __init__(self,
+    def __init__(self,  # pylint: disable=too-many-arguments
                  argv: Optional[Sequence[str]] = None,
                  prog: Optional[str] = None,
                  usage: Optional[str] = None,
