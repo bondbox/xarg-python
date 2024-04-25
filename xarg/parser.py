@@ -224,12 +224,12 @@ class argp(ArgumentParser):
         '''
 
         def __dfs_enable_help_action(root: argp):
-            root.__enable_help_action()
+            root.__enable_help_action()  # pylint: disable=protected-access
             for _sub in root.next_parser:
                 __dfs_enable_help_action(_sub)
 
         def __dfs_disable_help_action(root: argp):
-            root.__disable_help_action()
+            root.__disable_help_action()  # pylint: disable=protected-access
             for _sub in root.next_parser:
                 __dfs_disable_help_action(_sub)
 

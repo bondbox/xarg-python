@@ -86,7 +86,10 @@ class log:
             logger.warning(F"logger {logger.name} is already initiated")
 
         if isinstance(level, str):
-            logger.setLevel(logging._nameToLevel[level.upper()])
+            name = level.upper()
+            logger.setLevel(
+                logging._nameToLevel[name]  # pylint: disable=protected-access
+            )
 
         if filters is None:
             filters = [once_filter()]

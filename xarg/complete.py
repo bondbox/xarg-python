@@ -139,9 +139,10 @@ def add_cmd_update(_arg: argp):
 
 @run_command(add_cmd_update)
 def run_cmd_update(cmds: commands) -> int:
-    if len(cmds.args._commands_) == 0:
-        cmds.args._commands_ = collections().cmds
-    for cmd in set(cmds.args._commands_):
+    commands = getattr(cmds.args, "_commands_")
+    if len(commands) == 0:
+        commands = collections().cmds
+    for cmd in set(commands):
         if shutil.which(cmd) is None:
             cmds.stderr(f"Non existent command or script: {cmd}")
             continue
@@ -171,14 +172,15 @@ def add_cmd_remove(_arg: argp):
 
 @run_command(add_cmd_remove)
 def run_cmd_remove(cmds: commands) -> int:
-    if cmds.args._clean_:
-        assert isinstance(cmds.args._commands_, list)
+    commands: List[str] = getattr(cmds.args, "_commands_")
+    if getattr(cmds.args, "_clean_"):
+        assert isinstance(commands, list)
         for cmd in list_bash():
-            if cmd in cmds.args._commands_:
+            if cmd in commands:
                 continue
             if shutil.which(cmd) is None:
-                cmds.args._commands_.append(cmd)
-    for cmd in set(cmds.args._commands_):
+                commands.append(cmd)
+    for cmd in set(commands):
         cmds.stdout(f"Remove command or script: {cmd}")
         assert remove_bash(cmd)
     return 0
