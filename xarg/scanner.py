@@ -29,7 +29,7 @@ class scanner:
     '''scan objects
     '''
 
-    class object:
+    class object:  # pylint: disable=too-many-public-methods
 
         def __init__(self, path: str):
             assert isinstance(path, str)
@@ -177,7 +177,7 @@ class scanner:
                 self.__objregs.add(obj)
 
     @classmethod
-    def load(cls,
+    def load(cls,  # pylint: disable=R0913,R0914,R0915
              paths: Sequence[str],
              exclude: Optional[Sequence[str]] = None,
              linkdir: bool = True,
@@ -207,7 +207,7 @@ class scanner:
 
             return filter_paths
 
-        class task_stat:
+        class task_stat:  # pylint: disable=too-few-public-methods
 
             def __init__(self):
                 self.exit = False

@@ -10,7 +10,7 @@ from colorama.ansi import AnsiStyle
 from colorama.ansi import code_to_chars
 
 
-class AnsiXStyle(AnsiStyle):
+class AnsiXStyle(AnsiStyle):  # pylint: disable=too-few-public-methods
     ITALIC = 3
     UNDERLINE = 4
     SLOWBLINK = 5
@@ -42,7 +42,7 @@ SytleReset = {
 }
 
 
-class color(str):
+class color(str):  # pylint: disable=too-many-public-methods
     '''Colorful terminal text
 
     Reference: https://en.wikipedia.org/wiki/ANSI_escape_code
