@@ -532,9 +532,9 @@ class commands(log):
 
         def parse_format() -> Optional[str]:
             if hasattr(args, "_log_format_"):
-                format = getattr(args, "_log_format_")
-                if isinstance(format, str):
-                    return format
+                fmt = getattr(args, "_log_format_")
+                if isinstance(fmt, str):
+                    return fmt
             return None
 
         def parse_level() -> Optional[str]:

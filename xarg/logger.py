@@ -94,8 +94,8 @@ class log:
         if filters is None:
             filters = [once_filter()]
 
-        for filter in filters:
-            logger.addFilter(filter)
+        for _filter in filters:
+            logger.addFilter(_filter)
 
         if handlers is None:
             handlers = [self.new_stream_handler(stream=sys.stdout)]

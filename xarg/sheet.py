@@ -194,10 +194,10 @@ class form(Generic[FKT, FVT]):
 
 
 def tabulate(table: form[Any, Any],
-             format: Union[str, TableFormat] = "simple") -> str:
+             fmt: Union[str, TableFormat] = "simple") -> str:
     return __tabulate(tabular_data=table.values,
                       headers=table.header,
-                      tablefmt=format)
+                      tablefmt=fmt)
 
 
 def parse_table_name(filename: str) -> str:
