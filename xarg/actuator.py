@@ -709,7 +709,7 @@ class commands(log):
             return self.__run(args, root)
         except KeyboardInterrupt:
             return EINTR
-        except BaseException:
+        except BaseException:  # pylint: disable=broad-except
             self.logger.exception("Something went wrong:")
             return 10000
 

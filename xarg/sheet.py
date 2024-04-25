@@ -292,7 +292,7 @@ class xls_writer():
                 os.makedirs(dirname)
             self.book.save(abspath)
             return True
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             # f"failed to write file {abspath}"
             return False
 
