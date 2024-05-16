@@ -6,6 +6,7 @@ from csv import reader as csv_reader
 from csv import writer as csv_writer
 import os
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import Generic
 from typing import Iterable
@@ -155,6 +156,16 @@ class form(Generic[FKT, FVT]):
         """all cell values (by row)
         """
         return tuple(row.values for row in self)
+
+    def column_no(self, key: FKT) -> int:
+        return self.header.index(key)
+
+    def sort(self, key: Callable[[row[FKT, FVT]], cell[FVT]],
+             reverse: bool = False) -> None:
+        """sort rows using a Lambda function as the key.
+        """
+        self.__rows.sort(key=lambda row: key(row).value,  # type: ignore
+                         reverse=reverse)
 
     def dump(self) -> Tuple[Tuple[Any, ...], ...]:
         """dump header and all rows
