@@ -9,7 +9,7 @@ clean-cover:
 clean-tox: clean-cover
 	rm -rf .stestr .tox
 
-clean: build-clean clean-tox
+clean: build-clean test-clean clean-tox
 
 
 upgrade-xpip.build:
@@ -53,5 +53,8 @@ flake8:
 
 pytest:
 	pytest
+pytest-clean:
+	rm -rf .pytest_cache
 
 test: prepare-test pylint flake8 pytest
+test-clean: pytest-clean
