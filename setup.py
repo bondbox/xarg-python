@@ -13,6 +13,16 @@ from xarg.attribute import __url_docs__
 from xarg.attribute import __url_home__
 from xarg.attribute import __version__
 
+
+def all_requirements():
+    def read_requirements(path: str):
+        with open(path, "r", encoding="utf-8") as rhdl:
+            return rhdl.read().splitlines()
+
+    requirements = read_requirements("requirements.txt")
+    return requirements
+
+
 setup(
     name=__project__,
     version=__version__,
@@ -23,4 +33,5 @@ setup(
     project_urls={"Source Code": __url_code__,
                   "Bug Tracker": __url_bugs__,
                   "Documentation": __url_docs__},
-    packages=find_packages(include=["xarg*"], exclude=["tests"]))
+    packages=find_packages(include=["xarg*"], exclude=["tests"]),
+    install_requires=all_requirements())
