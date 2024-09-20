@@ -3,6 +3,9 @@
         "editor.defaultFormatter": "ms-python.autopep8",
         // "editor.defaultFormatter": "ms-python.black-formatter",
     },
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml",
+    },
     "python.analysis.importFormat": "relative",
     "python.analysis.typeCheckingMode": "basic",
     "python.testing.unittestEnabled": true,
