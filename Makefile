@@ -40,6 +40,8 @@ install:
 uninstall:
 	pip3 uninstall -y xarg-python
 
+reinstall: uninstall install
+
 
 prepare-test:
 	pip3 install --upgrade pylint flake8 pytest
