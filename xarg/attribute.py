@@ -17,3 +17,4 @@ __author_email__ = "zoumingzhe@outlook.com"
 # project name
 __prog_name__ = "xarg"
 __prog_complete__ = "xargcomplete"
+__prog_project__ = "xargproject"
