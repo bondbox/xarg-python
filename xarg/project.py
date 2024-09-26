@@ -10,7 +10,7 @@ from .actuator import run_command
 from .attribute import __author__
 from .attribute import __author_email__
 from .attribute import __prog_project__
-from .attribute import __url_home__
+from .attribute import __urlhome__
 from .attribute import __version__
 from .parser import argp
 
@@ -90,7 +90,7 @@ flake8:
 pytest:
 	pytest
 test: prepare-test pylint flake8 pytest
-''')
+''')  # noqa:W191,E101,E501
 
     def init_readme(self):
         self.write("README.md", f'''# {self.name}
@@ -133,10 +133,10 @@ from {self.name}.attribute import __author__
 from {self.name}.attribute import __author_email__
 from {self.name}.attribute import __description__
 from {self.name}.attribute import __project__
-from {self.name}.attribute import __url_bugs__
-from {self.name}.attribute import __url_code__
-from {self.name}.attribute import __url_docs__
-from {self.name}.attribute import __url_home__
+from {self.name}.attribute import __urlbugs__
+from {self.name}.attribute import __urlcode__
+from {self.name}.attribute import __urldocs__
+from {self.name}.attribute import __urlhome__
 from {self.name}.attribute import __version__
 
 
@@ -153,12 +153,12 @@ setup(
     name=__project__,
     version=__version__,
     description=__description__,
-    url=__url_home__,
+    url=__urlhome__,
     author=__author__,
     author_email=__author_email__,
-    project_urls={{"Source Code": __url_code__,
-                  "Bug Tracker": __url_bugs__,
-                  "Documentation": __url_docs__}},
+    project_urls={{"Source Code": __urlcode__,
+                  "Bug Tracker": __urlbugs__,
+                  "Documentation": __urldocs__}},
     packages=find_packages(include=["{self.name}*"], exclude=["tests"]),
     install_requires=all_requirements())
 ''')
@@ -175,10 +175,10 @@ from urllib.parse import urljoin
 __project__ = "{self.name}"
 __version__ = "0.1.alpha.1"
 __description__ = "Automatically created by {__prog_project__}."
-__url_home__ = "{__url_home__}"
-__url_code__ = __url_home__
-__url_docs__ = __url_home__
-__url_bugs__ = urljoin(__url_home__, "issues")
+__urlhome__ = "{__urlhome__}"
+__urlcode__ = __urlhome__
+__urldocs__ = __urlhome__
+__urlbugs__ = urljoin(__urlhome__, "issues")
 
 # author
 __author__ = "{__author__}"
@@ -195,8 +195,8 @@ from xarg import argp
 from xarg import commands
 from xarg import run_command
 
-from .attribute import __url_home__
 from .attribute import __project__
+from .attribute import __urlhome__
 from .attribute import __version__
 
 
@@ -217,7 +217,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         root=add_cmd,
         argv=argv,
         description="Automatically created by {__prog_project__}.",
-        epilog=f"For more, please visit {{__url_home__}}.")
+        epilog=f"For more, please visit {{__urlhome__}}.")
 ''')
 
     def create(self) -> int:
@@ -263,4 +263,4 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         root=add_cmd,
         argv=argv,
         description="Create a command-line project.",
-        epilog=f"For more, please visit {__url_home__}.")
+        epilog=f"For more, please visit {__urlhome__}.")

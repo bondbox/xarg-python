@@ -25,7 +25,7 @@ from .actuator import commands
 from .actuator import run_command
 from .attribute import __prog_complete__
 from .attribute import __project__
-from .attribute import __url_home__
+from .attribute import __urlhome__
 from .attribute import __version__
 from .parser import argp
 from .util import singleton
@@ -241,4 +241,4 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         root=add_cmd,
         argv=argv,
         description="Tab completion management.",
-        epilog=f"For more, please visit {__url_home__}.")
+        epilog=f"For more, please visit {__urlhome__}.")

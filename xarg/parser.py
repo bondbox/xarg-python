@@ -12,7 +12,7 @@ from typing import Sequence
 from typing import Set
 from typing import Tuple
 
-from .attribute import __url_home__ as __url__
+from .attribute import __urlhome__
 
 try:
     from argcomplete import autocomplete
@@ -83,7 +83,7 @@ class argp(ArgumentParser):
                  usage: Optional[str] = None,
                  prev_parser: Optional["argp"] = None,
                  description: Optional[str] = "Command-line based on xarg.",
-                 epilog: Optional[str] = f"For more, please visit {__url__}",
+                 epilog: Optional[str] = f"For more, please visit {__urlhome__}",  # noqa:E501
                  **kwargs):
         kwargs.setdefault("prog", prog)
         kwargs.setdefault("usage", usage)
