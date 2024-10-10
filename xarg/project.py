@@ -17,7 +17,7 @@ from .parser import argp
 
 class project:
 
-    def __init__(self, name: str, license: str, allow_update: bool = False):
+    def __init__(self, name: str, license: str, allow_update: bool = False):  # pylint: disable=redefined-builtin # noqa:E501
         self.__name: str = name
         self.__license: str = license
         self.__allow_update: bool = allow_update
@@ -252,7 +252,7 @@ def add_cmd(_arg: argp):
 
 
 @run_command(add_cmd, add_cmd_init)
-def run_cmd(cmds: commands) -> int:
+def run_cmd(cmds: commands) -> int:  # pylint: disable=unused-argument
     return 0
 
 

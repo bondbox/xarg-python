@@ -177,7 +177,7 @@ class scanner:
                 self.__objregs.add(obj)
 
     @classmethod
-    def load(cls,  # pylint: disable=R0913,R0914,R0915
+    def load(cls,  # pylint: disable=R0913,R0914,R0915,R0917
              paths: Sequence[str],
              exclude: Optional[Sequence[str]] = None,
              linkdir: bool = True,
