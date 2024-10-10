@@ -24,6 +24,8 @@ from wcwidth import wcswidth
 import xlrd
 import xlwt
 
+from .safefile import safile
+
 FKT = TypeVar("FKT")
 FVT = TypeVar("FVT")
 RKT = TypeVar("RKT")
@@ -223,6 +225,7 @@ class csv():
              ) -> form[str, str]:
         """Read .csv file
         """
+        safile.restore(path=filename)
         with open(filename, "r", encoding="utf-8") as rhdl:
             table: form[str, str] = form(name=parse_table_name(filename))
             if include_header:
@@ -242,6 +245,7 @@ class csv():
     def dump(cls, filename: str, table: form[Any, Any]) -> None:
         """Write .csv file
         """
+        safile.create_backup(path=filename, copy=True)
         with open(filename, "w", encoding="utf-8") as whdl:
             if len(table.header) > 0:
                 writer = csv_dist_writer(whdl, fieldnames=table.header)
@@ -250,6 +254,7 @@ class csv():
             else:
                 writer = csv_writer(whdl)
                 writer.writerows(table.dump())
+        safile.delete_backup(path=filename)
 
 
 class xls_reader():
@@ -257,8 +262,9 @@ class xls_reader():
     """
 
     def __init__(self, filename: str):
-        self.__book: xlrd.Book = xlrd.open_workbook(filename)
         self.__file: str = filename
+        safile.restore(path=filename)
+        self.__book: xlrd.Book = xlrd.open_workbook(filename)
 
     @property
     def file(self) -> str:
@@ -301,7 +307,9 @@ class xls_writer():
             dirname: str = os.path.dirname(abspath)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
+            safile.create_backup(path=abspath, copy=True)
             self.book.save(abspath)
+            safile.delete_backup(path=abspath)
             return True
         except Exception:  # pylint: disable=broad-except
             # f"failed to write file {abspath}"
@@ -334,9 +342,10 @@ class xlsx():
     """
 
     def __init__(self, filename: str, read_only: bool = True):
+        self.__file: str = filename
+        safile.restore(path=filename)
         self.__book: openpyxl.Workbook = openpyxl.load_workbook(
             filename=filename, read_only=read_only)
-        self.__file: str = filename
 
     @property
     def file(self) -> str:
