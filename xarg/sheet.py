@@ -225,36 +225,38 @@ class csv():
              ) -> form[str, str]:
         """Read .csv file
         """
-        safile.restore(path=filename)
-        with open(filename, "r", encoding="utf-8") as rhdl:
+        with safile.lock(filename):
+            safile.restore(path=filename)
             table: form[str, str] = form(name=parse_table_name(filename))
-            if include_header:
-                reader = csv_dist_reader(rhdl)
-                fields = reader.fieldnames
-                if fields is not None:
-                    table.header = fields
+            with open(filename, "r", encoding="utf-8") as rhdl:
+                if include_header:
+                    reader = csv_dist_reader(rhdl)
+                    fields = reader.fieldnames
+                    if fields is not None:
+                        table.header = fields
+                        for _row in reader:
+                            table.append(table.reflection(_row))
+                else:
+                    reader = csv_reader(rhdl)
                     for _row in reader:
-                        table.append(table.reflection(_row))
-            else:
-                reader = csv_reader(rhdl)
-                for _row in reader:
-                    table.append(_row)
-        return table
+                        table.append(_row)
+            return table
 
     @classmethod
     def dump(cls, filename: str, table: form[Any, Any]) -> None:
         """Write .csv file
         """
-        safile.create_backup(path=filename, copy=True)
-        with open(filename, "w", encoding="utf-8") as whdl:
-            if len(table.header) > 0:
-                writer = csv_dist_writer(whdl, fieldnames=table.header)
-                writer.writeheader()
-                writer.writerows(table.mappings)
-            else:
-                writer = csv_writer(whdl)
-                writer.writerows(table.dump())
-        safile.delete_backup(path=filename)
+        with safile.lock(filename):
+            safile.create_backup(path=filename, copy=True)
+            with open(filename, "w", encoding="utf-8") as whdl:
+                if len(table.header) > 0:
+                    writer = csv_dist_writer(whdl, fieldnames=table.header)
+                    writer.writeheader()
+                    writer.writerows(table.mappings)
+                else:
+                    writer = csv_writer(whdl)
+                    writer.writerows(table.dump())
+            safile.delete_backup(path=filename)
 
 
 class xls_reader():

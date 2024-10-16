@@ -1,6 +1,7 @@
 argcomplete >= 3.2.1
 colorama
 colorlog
+filelock
 openpyxl
 tabulate
 wcwidth

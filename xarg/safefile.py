@@ -3,12 +3,20 @@
 import os
 import shutil
 
+from filelock import FileLock
+
 
 class safile:
     '''Secure read and write files
 
     Backup before writing and restore (if backup exists) before reading.
     '''
+
+    @classmethod
+    def lock(cls, origin: str):
+        '''Unified file lock
+        '''
+        return FileLock(f"{origin}.lock")
 
     @classmethod
     def get_backup_path(cls, origin: str) -> str:
