@@ -195,6 +195,7 @@ from xarg import argp
 from xarg import commands
 from xarg import run_command
 
+from .attribute import __description__
 from .attribute import __project__
 from .attribute import __urlhome__
 from .attribute import __version__
@@ -216,7 +217,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     return cmds.run(
         root=add_cmd,
         argv=argv,
-        description="Automatically created by {__prog_project__}.",
+        description=__description__,
         epilog=f"For more, please visit {{__urlhome__}}.")
 ''')
 
