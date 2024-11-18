@@ -1,27 +1,28 @@
 # coding:utf-8
 
-from .actuator import cmds
-from .actuator import commands
-from .actuator import Namespace
-from .actuator import add_command
-from .actuator import end_command
-from .actuator import pre_command
-from .actuator import run_command
+from .actuator import cmds  # noaq:F401
+from .actuator import commands  # noaq:F401
+from .actuator import Namespace  # noaq:F401
+from .actuator import add_command  # noaq:F401
+from .actuator import end_command  # noaq:F401
+from .actuator import pre_command  # noaq:F401
+from .actuator import run_command  # noaq:F401
 
-from .parser import argp
+from .parser import argp  # noaq:F401
 
-from .colorful import color
-from .colorful import Style
-from .colorful import Fore
-from .colorful import Back
-from .safefile import safile
-from .scanner import scanner
-from .sheet import csv
-from .sheet import form
-from .sheet import tabulate
-from .sheet import xls_reader
-from .sheet import xls_writer
-from .sheet import xlsx
+from .colorful import color  # noaq:F401
+from .colorful import Style  # noaq:F401
+from .colorful import Fore  # noaq:F401
+from .colorful import Back  # noaq:F401
+from .safefile import safile  # noaq:F401
+from .safefile import stfile  # noaq:F401
+from .scanner import scanner  # noaq:F401
+from .sheet import csv  # noaq:F401
+from .sheet import form  # noaq:F401
+from .sheet import tabulate  # noaq:F401
+from .sheet import xls_reader  # noaq:F401
+from .sheet import xls_writer  # noaq:F401
+from .sheet import xlsx  # noaq:F401
 
-from .util import chdir
-from .util import singleton
+from .util import chdir  # noaq:F401
+from .util import singleton  # noaq:F401
