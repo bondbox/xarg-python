@@ -161,8 +161,14 @@ class stfile:
             ┃ ┃  ┗━━━━━━ Group   ┣━ Permissions
             ┃ ┗━━━━━━━━━ Owner  ━┛
             ┗━━━━━━━━━━━ File type
+        '''
+        return stat.filemode(self.stat.st_mode)
 
-        File type:
+    @property
+    def human_file_type(self) -> str:
+        '''File type
+
+        4 (13 - 16 bits) file type bitmask:
 
             | - | regular file      | stat.S_ISREG  | S_IFREG   | 0o100000 |
             | d | directory         | stat.S_ISDIR  | S_IFDIR   | 0o040000 |
@@ -172,25 +178,49 @@ class stfile:
             | s | socket            | stat.S_ISSOCK | S_IFSOCK  | 0o140000 |
             | p | FIFO              | stat.S_ISFIFO | S_IFIFO   | 0o010000 |
         '''
-        st_mode: int = self.stat.st_mode
+        return self.human_mode[0]
 
-        file_type: str = {
-            stat.S_IFREG: "-",
-            stat.S_IFDIR: "d",
-            stat.S_IFLNK: "l",
-            stat.S_IFBLK: "b",
-            stat.S_IFCHR: "c",
-            stat.S_IFIFO: "p",
-            stat.S_IFSOCK: "s",
-        }[stat.S_IFMT(st_mode)]
+    @property
+    def human_all_permissions(self) -> str:
+        '''File all users permissions
 
-        permissions: str = "".join(
-            what.lower() if getattr(stat, f"S_I{what}{who}") & st_mode else "-"
-            for who in ["USR", "GRP", "OTH"]
-            for what in ["R", "W", "X"]
-        )
+        9 (1 - 9 bits) users permissions bitmask and
+        3 (10 - 12 bits) special permissions
+        '''
+        return self.human_mode[-9:]
 
-        return file_type + permissions
+    @property
+    def human_owner_permissions(self) -> str:
+        '''File owner permissions
+
+        3 (7 - 9 bits) owner permissions bitmask and setuid bit:
+            - Read permission: -/r
+            - Write permission: -/w
+            - Execute permission: -/x/s(x + SUID)/S(only SUID)
+        '''
+        return self.human_all_permissions[0:3]
+
+    @property
+    def human_group_permissions(self) -> str:
+        '''File group permissions
+
+        3 (4 - 6 bits) group permissions bitmask and setgid bit:
+            - Read permission: -/r
+            - Write permission: -/w
+            - Execute permission: -/x/s(x + SGID)/S(only SGID)
+        '''
+        return self.human_all_permissions[3:6]
+
+    @property
+    def human_other_permissions(self) -> str:
+        '''File other (not in group) permissions
+
+        3 (1 - 3 bits) other permissions bitmask and sticky bit:
+            - Read permission: -/r
+            - Write permission: -/w
+            - Execute permission: -/x/t(x + SBIT)/T(only SBIT)
+        '''
+        return self.human_all_permissions[6:9]
 
     def chmod(self, mode: Union[int, str]):
         '''change file mode bits
