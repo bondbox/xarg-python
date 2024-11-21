@@ -17,7 +17,7 @@ from typing import Tuple
 from .attribute import __prog_name__
 from .logger import log
 from .parser import argp
-from .util import singleton
+from .utils import singleton
 
 
 class add_command:

@@ -17,7 +17,7 @@ def singleton(cls):
 
 @singleton
 class chdir:
-    '''Change directory
+    '''Change working directory
     '''
 
     def __init__(self):

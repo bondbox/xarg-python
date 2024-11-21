@@ -24,5 +24,5 @@ from .sheet import xls_reader  # noaq:F401
 from .sheet import xls_writer  # noaq:F401
 from .sheet import xlsx  # noaq:F401
 
-from .util import chdir  # noaq:F401
-from .util import singleton  # noaq:F401
+from .utils import chdir  # noaq:F401
+from .utils import singleton  # noaq:F401

@@ -28,7 +28,7 @@ from .attribute import __project__
 from .attribute import __urlhome__
 from .attribute import __version__
 from .parser import argp
-from .util import singleton
+from .utils import singleton
 
 USER_BASH_COMPLETION_CFG = "~/.bash_completion"
 USER_BASH_COMPLETION_DIR = "~/.bash_completion.d"
