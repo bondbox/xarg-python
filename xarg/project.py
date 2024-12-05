@@ -185,7 +185,7 @@ __author__ = "{__author__}"
 __author_email__ = "{__author_email__}"
 ''')
         self.write(os.path.join(self.name, "command.py"),
-                   f'''# coding:utf-8
+                   '''# coding:utf-8
 
 from typing import Optional
 from typing import Sequence
@@ -218,7 +218,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         root=add_cmd,
         argv=argv,
         description=__description__,
-        epilog=f"For more, please visit {{__urlhome__}}.")
+        epilog=f"For more, please visit {__urlhome__}.")
 ''')
 
     def create(self) -> int:
