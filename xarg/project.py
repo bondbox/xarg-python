@@ -18,13 +18,23 @@ from .parser import argp
 class project:
 
     def __init__(self, name: str, license: str, allow_update: bool = False):  # pylint: disable=redefined-builtin # noqa:E501
+        # check illegal characters in project name
+        for char in [" "]:
+            if char in name:
+                raise ValueError(f"Illegal character '{char}' in '{name}'")
+        folder: str = name.replace("-", "_")
         self.__name: str = name
+        self.__folder: str = folder
         self.__license: str = license
         self.__allow_update: bool = allow_update
 
     @property
     def name(self) -> str:
         return self.__name
+
+    @property
+    def folder(self) -> str:
+        return self.__folder
 
     @property
     def license(self) -> str:
@@ -83,7 +93,7 @@ reinstall: uninstall install
 prepare-test:
 	pip3 install --upgrade pylint flake8 pytest
 pylint:
-	pylint $$(git ls-files {self.name}/*.py test/*.py example/*.py)
+	pylint $$(git ls-files {self.folder}/*.py test/*.py example/*.py)
 flake8:
 	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
@@ -120,7 +130,7 @@ python_requires = >=3.8
 
 [options.entry_points]
 console_scripts =
-    {self.name} = {self.name}.command:main
+    {self.name} = {self.folder}.command:main
 ''')
 
         # create setup.py
@@ -129,15 +139,15 @@ console_scripts =
 from setuptools import find_packages
 from setuptools import setup
 
-from {self.name}.attribute import __author__
-from {self.name}.attribute import __author_email__
-from {self.name}.attribute import __description__
-from {self.name}.attribute import __project__
-from {self.name}.attribute import __urlbugs__
-from {self.name}.attribute import __urlcode__
-from {self.name}.attribute import __urldocs__
-from {self.name}.attribute import __urlhome__
-from {self.name}.attribute import __version__
+from {self.folder}.attribute import __author__
+from {self.folder}.attribute import __author_email__
+from {self.folder}.attribute import __description__
+from {self.folder}.attribute import __project__
+from {self.folder}.attribute import __urlbugs__
+from {self.folder}.attribute import __urlcode__
+from {self.folder}.attribute import __urldocs__
+from {self.folder}.attribute import __urlhome__
+from {self.folder}.attribute import __version__
 
 
 def all_requirements():
@@ -159,15 +169,15 @@ setup(
     project_urls={{"Source Code": __urlcode__,
                   "Bug Tracker": __urlbugs__,
                   "Documentation": __urldocs__}},
-    packages=find_packages(include=["{self.name}*"], exclude=["tests"]),
+    packages=find_packages(include=["{self.folder}*"], exclude=["tests"]),
     install_requires=all_requirements())
 ''')
 
     def init_project(self):
-        os.makedirs(self.name, exist_ok=True)
-        self.write(os.path.join(self.name, "__init__.py"),
+        os.makedirs(self.folder, exist_ok=True)
+        self.write(os.path.join(self.folder, "__init__.py"),
                    '''# coding:utf-8''')
-        self.write(os.path.join(self.name, "attribute.py"),
+        self.write(os.path.join(self.folder, "attribute.py"),
                    f'''# coding:utf-8
 
 from urllib.parse import urljoin
@@ -184,7 +194,7 @@ __urlbugs__ = urljoin(__urlhome__, "issues")
 __author__ = "{__author__}"
 __author_email__ = "{__author_email__}"
 ''')
-        self.write(os.path.join(self.name, "command.py"),
+        self.write(os.path.join(self.folder, "command.py"),
                    '''# coding:utf-8
 
 from typing import Optional
