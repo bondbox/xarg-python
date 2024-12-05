@@ -693,6 +693,8 @@ class commands(log):
             return ENOENT
 
         kwargs.pop("prog", None)  # Please do not specify prog
+        if "description" in root.options:  # Default use root's description
+            kwargs["description"] = root.options["description"]
         args = self.parse(root, argv, **kwargs)
         self.logger.debug("%s", args)
 
