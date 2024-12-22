@@ -99,8 +99,8 @@ test-prepare:
 pylint:
 	pylint $(shell git ls-files {self.folder}/*.py test/*.py example/*.py)
 flake8:
-	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+	flake8 {self.folder} --count --select=E9,F63,F7,F82 --show-source --statistics
+	flake8 {self.folder} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 pytest:
 	pytest
 pytest-clean:

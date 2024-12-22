@@ -2,15 +2,14 @@
 
 import os
 from tempfile import TemporaryDirectory
-import unittest
 from typing import Union
+import unittest
 
 from xarg import csv
 from xarg import form
 from xarg import tabulate
 from xarg import xls_reader
 from xarg import xls_writer
-from xarg import xlsx
 
 
 class test_sheet(unittest.TestCase):
