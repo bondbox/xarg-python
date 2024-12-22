@@ -94,8 +94,8 @@ uninstall:
 reinstall: uninstall install
 
 
-prepare-test:
-	pip3 install --upgrade pylint flake8 pytest
+test-prepare:
+	pip3 install --upgrade mock pylint flake8 pytest
 pylint:
 	pylint $(shell git ls-files {self.folder}/*.py test/*.py example/*.py)
 flake8:
@@ -105,7 +105,7 @@ pytest:
 	pytest
 pytest-clean:
 	rm -rf .pytest_cache
-test: prepare-test pylint flake8 pytest
+test: test-prepare pylint flake8 pytest
 test-clean: pytest-clean
 ''')  # noqa:W191,E101,E501
 
