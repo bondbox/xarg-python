@@ -132,7 +132,8 @@ class add_command:
 
 
 class run_command:
-    '''Define the main callback function, and bind it to a node and subcommands.
+    '''Define the main callback function, and bind it to a node and
+    all subcommands.
 
     For example:
 
