@@ -187,12 +187,12 @@ class argp(ArgumentParser):
             autocomplete(self)  # For tab completion
         except NameError:
             pass
-        return super().parse_args(args=args, namespace=namespace)
+        return super().parse_args(args, namespace)  # type: ignore
 
     def parse_known_args(self, args: Optional[Sequence[str]] = None,
                          namespace: Optional[Namespace] = None
                          ) -> Tuple[Namespace, List[str]]:
-        return super().parse_known_args(args=args, namespace=namespace)
+        return super().parse_known_args(args, namespace)  # type: ignore
 
     def __enable_help_action(self):  # pylint: disable=unused-private-member
         while len(self.__help_option) > 0:
