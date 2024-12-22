@@ -24,8 +24,8 @@ class test_chdir(unittest.TestCase):
 
     def test_chdir(self):
         self.assertRaises(AssertionError, chdir().popd)
-        chdir().pushd(os.path.join("xarg", "test"))
-        chdir().pushd("unit")
+        chdir().pushd("xarg")
+        chdir().pushd("unittest")
         chdir().popd()
         chdir().popd()
         self.assertRaises(AssertionError, chdir().popd)
