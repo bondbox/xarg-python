@@ -55,9 +55,11 @@ class project:
     def init_pylintrc(self):
         self.write(".pylintrc", '''[MASTER]
 disable=
+    C0103,   # invalid-name
     C0114,   # missing-module-docstring
     C0115,   # missing-class-docstring
     C0116,   # missing-function-docstring
+    C0301,   # line-too-long
 ''')
 
     def init_makefile(self):

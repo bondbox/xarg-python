@@ -181,17 +181,20 @@ class argp(ArgumentParser):
         kwargs.setdefault("metavar", None)
         return ArgumentParser.add_subparsers(self, *args, **kwargs)
 
-    def parse_args(self, args: Optional[Sequence[str]] = None,
-                   namespace: Optional[Namespace] = None) -> Namespace:
+    def parse_args(  # pylint: disable=useless-parent-delegation
+        self, args: Optional[Sequence[str]] = None,
+        namespace: Optional[Namespace] = None
+    ) -> Namespace:
         try:
             autocomplete(self)  # For tab completion
         except NameError:
             pass
         return super().parse_args(args, namespace)  # type: ignore
 
-    def parse_known_args(self, args: Optional[Sequence[str]] = None,
-                         namespace: Optional[Namespace] = None
-                         ) -> Tuple[Namespace, List[str]]:
+    def parse_known_args(  # pylint: disable=useless-parent-delegation
+            self, args: Optional[Sequence[str]] = None,
+            namespace: Optional[Namespace] = None
+    ) -> Tuple[Namespace, List[str]]:
         return super().parse_known_args(args, namespace)  # type: ignore
 
     def __enable_help_action(self):  # pylint: disable=unused-private-member
