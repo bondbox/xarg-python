@@ -70,7 +70,7 @@ clean-cover:
 	rm -rf cover .coverage
 clean-tox: clean-cover
 	rm -rf .stestr .tox
-clean: build-clean clean-tox
+clean: build-clean test-clean clean-tox
 
 
 upload:
@@ -79,7 +79,9 @@ upload:
 
 build-clean:
 	xpip-build --debug setup --clean
-build: build-clean
+build-requirements:
+	pip3 install -r requirements.txt
+build: build-clean build-requirements
 	xpip-build --debug setup --all
 
 
@@ -93,13 +95,16 @@ reinstall: uninstall install
 prepare-test:
 	pip3 install --upgrade pylint flake8 pytest
 pylint:
-	pylint $$(git ls-files {self.folder}/*.py test/*.py example/*.py)
+	pylint $(shell git ls-files {self.folder}/*.py test/*.py example/*.py)
 flake8:
 	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 pytest:
 	pytest
+pytest-clean:
+	rm -rf .pytest_cache
 test: prepare-test pylint flake8 pytest
+test-clean: pytest-clean
 ''')  # noqa:W191,E101,E501
 
     def init_readme(self):

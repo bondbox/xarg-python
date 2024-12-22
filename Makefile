@@ -24,7 +24,9 @@ upload:
 
 build-clean:
 	xpip-build --debug setup --clean
-build: build-clean
+build-requirements:
+	pip3 install -r requirements.txt
+build: build-clean build-requirements
 	xpip-build --debug setup --all
 
 
@@ -38,7 +40,7 @@ reinstall: uninstall install
 prepare-test:
 	pip3 install --upgrade pylint flake8 pytest
 pylint:
-	pylint $$(git ls-files xarg/*.py test/*.py example/*.py)
+	pylint $(shell git ls-files xarg/*.py test/*.py example/*.py)
 flake8:
 	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
